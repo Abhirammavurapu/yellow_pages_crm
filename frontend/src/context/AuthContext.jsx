@@ -5,9 +5,11 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+
   const [token, setToken] = useState(() => {
     return localStorage.getItem('crm_token');
   });
+
   const [loading, setLoading] = useState(true);
 
   // Verify logged-in user from MongoDB/backend
@@ -49,13 +51,13 @@ export const AuthProvider = ({ children }) => {
       if (res.success && res.data) {
         const { token: jwtToken, user: userData } = res.data;
 
-        // Keep JWT for authentication
+        // Keep JWT in state
         setToken(jwtToken);
 
         // User data comes from backend
         setUser(userData);
 
-        // Only token is stored locally
+        // Store only authentication token
         localStorage.setItem('crm_token', jwtToken);
 
         return userData;
@@ -79,33 +81,36 @@ export const AuthProvider = ({ children }) => {
       setToken(null);
       setUser(null);
 
-      // Remove only authentication token
+      // Remove authentication token
       localStorage.removeItem('crm_token');
     }
   };
 
-<<<<<<< HEAD
   // SIGNUP
   const signup = async (formData) => {
     try {
       const res = await api.post('/auth/signup', formData);
+
       if (res.success && res.data) {
         if (res.data.token && res.data.user) {
           setToken(res.data.token);
           setUser(res.data.user);
+
           localStorage.setItem('crm_token', res.data.token);
+
           return res.data.user;
         }
+
         return res.data;
       }
+
       throw new Error(res.message || 'Signup failed');
     } catch (error) {
       throw error;
     }
   };
 
-=======
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
+  // ROLE CHECKS
   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 
   const isAdmin = [
@@ -132,11 +137,9 @@ export const AuthProvider = ({ children }) => {
         user,
         token,
         loading,
+
         login,
-<<<<<<< HEAD
         signup,
-=======
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
         logout,
 
         isAuthenticated: !!token && !!user,

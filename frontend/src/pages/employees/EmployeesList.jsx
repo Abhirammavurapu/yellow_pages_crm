@@ -24,7 +24,7 @@ export default function EmployeesList() {
 
   const [employees, setEmployees] = useState([]);
   const [hierarchy, setHierarchy] = useState(null);
-  const [activeView, setActiveView] = useState('list'); // 'list' or 'hierarchy'
+  const [activeView, setActiveView] = useState('list');
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -42,12 +42,14 @@ export default function EmployeesList() {
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState('');
 
-  // Workload Transfer Modal State (Critical Workflow 16 & 17)
+  // Workload Transfer Modal State
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [sourceEmployee, setSourceEmployee] = useState(null);
   const [transferPreview, setTransferPreview] = useState(null);
   const [targetEmployeeId, setTargetEmployeeId] = useState('');
-  const [transferReason, setTransferReason] = useState('Employee Resignation / Workload Transfer');
+  const [transferReason, setTransferReason] = useState(
+    'Employee Resignation / Workload Transfer'
+  );
   const [deactivateSource, setDeactivateSource] = useState(true);
   const [transferring, setTransferring] = useState(false);
 
@@ -58,11 +60,18 @@ export default function EmployeesList() {
 
   const fetchEmployees = async () => {
     setLoading(true);
+
     try {
       const [empRes, hierRes] = await Promise.all([
-        api.get('/employees', { params: { limit: 100, search: search || undefined } }),
+        api.get('/employees', {
+          params: {
+            limit: 100,
+            search: search || undefined
+          }
+        }),
         api.get('/employees/hierarchy')
       ]);
+
       if (empRes.success) setEmployees(empRes.data);
       if (hierRes.success) setHierarchy(hierRes.data);
     } catch (err) {
@@ -85,6 +94,7 @@ export default function EmployeesList() {
 
     try {
       const res = await api.get(`/transfers/preview/${emp._id}`);
+
       if (res.success) {
         setTransferPreview(res.data);
       }
@@ -96,7 +106,9 @@ export default function EmployeesList() {
   // Execute Workload Transfer
   const handleExecuteTransfer = async () => {
     if (!targetEmployeeId || !sourceEmployee) return;
+
     setTransferring(true);
+
     try {
       const res = await api.post('/transfers/execute', {
         fromEmployeeId: sourceEmployee._id,
@@ -104,6 +116,7 @@ export default function EmployeesList() {
         reason: transferReason,
         deactivateSourceEmployee: deactivateSource
       });
+
       if (res.success) {
         setTransferModalOpen(false);
         fetchEmployees();
@@ -121,10 +134,13 @@ export default function EmployeesList() {
     e.preventDefault();
     setAddError('');
     setAdding(true);
+
     try {
       const res = await api.post('/employees', newEmployee);
+
       if (res.success) {
         setAddModalOpen(false);
+
         setNewEmployee({
           employeeId: '',
           name: '',
@@ -134,6 +150,7 @@ export default function EmployeesList() {
           role: 'TELECALLER',
           department: 'Inside Sales'
         });
+
         fetchEmployees();
       }
     } catch (err) {
@@ -143,13 +160,18 @@ export default function EmployeesList() {
     }
   };
 
-  // Change Status (Only Super Admin can deactivate/resign)
+  // Change Status
   const handleConfirmStatusChange = async () => {
     if (!statusTarget || !newStatusValue) return;
+
     try {
-      const res = await api.patch(`/employees/${statusTarget._id}/status`, {
-        status: newStatusValue
-      });
+      const res = await api.patch(
+        `/employees/${statusTarget._id}/status`,
+        {
+          status: newStatusValue
+        }
+      );
+
       if (res.success) {
         setStatusConfirmOpen(false);
         fetchEmployees();
@@ -171,6 +193,7 @@ export default function EmployeesList() {
           <h1 className="text-xl font-bold tracking-tight text-slate-900">
             Employees & Hierarchy Management
           </h1>
+
           <p className="text-xs text-slate-500 mt-0.5">
             Manage organizational structure, telecallers, BDEs, and seamless lead transfers
           </p>
@@ -181,15 +204,20 @@ export default function EmployeesList() {
             <button
               onClick={() => setActiveView('list')}
               className={`px-3 py-1.5 rounded-lg transition ${
-                activeView === 'list' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'
+                activeView === 'list'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-500'
               }`}
             >
               List View
             </button>
+
             <button
               onClick={() => setActiveView('hierarchy')}
               className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${
-                activeView === 'hierarchy' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'
+                activeView === 'hierarchy'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-500'
               }`}
             >
               <GitBranch className="w-3.5 h-3.5" />
@@ -197,7 +225,6 @@ export default function EmployeesList() {
             </button>
           </div>
 
-<<<<<<< HEAD
           {(isSuperAdmin || isAdmin) && (
             <button
               onClick={() => {
@@ -210,6 +237,7 @@ export default function EmployeesList() {
                   role: 'ADMIN',
                   department: 'Operations & Administration'
                 });
+
                 setAddModalOpen(true);
               }}
               className="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5 cursor-pointer"
@@ -231,15 +259,10 @@ export default function EmployeesList() {
                   role: 'TELECALLER',
                   department: 'Inside Sales'
                 });
+
                 setAddModalOpen(true);
               }}
               className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5 cursor-pointer"
-=======
-          {(isSuperAdmin || isHRAdmin) && (
-            <button
-              onClick={() => setAddModalOpen(true)}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5"
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
             >
               <UserPlus className="w-4 h-4" />
               <span>Add Employee</span>
@@ -254,6 +277,7 @@ export default function EmployeesList() {
           <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
             <div className="relative max-w-sm">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
+
               <input
                 type="text"
                 value={search}
@@ -279,6 +303,7 @@ export default function EmployeesList() {
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
+
                 <tbody className="divide-y divide-slate-100 text-slate-700">
                   {loading ? (
                     <tr>
@@ -288,14 +313,22 @@ export default function EmployeesList() {
                     </tr>
                   ) : employees.length > 0 ? (
                     employees.map((emp) => (
-                      <tr key={emp._id} className="hover:bg-slate-50/70 transition">
+                      <tr
+                        key={emp._id}
+                        className="hover:bg-slate-50/70 transition"
+                      >
                         <td className="py-3 px-4 font-mono font-bold text-slate-800">
                           {emp.employeeId}
                         </td>
 
                         <td className="py-3 px-4">
-                          <div className="font-semibold text-slate-900">{emp.name}</div>
-                          <div className="text-[11px] text-slate-400">{emp.email}</div>
+                          <div className="font-semibold text-slate-900">
+                            {emp.name}
+                          </div>
+
+                          <div className="text-[11px] text-slate-400">
+                            {emp.email}
+                          </div>
                         </td>
 
                         <td className="py-3 px-4">
@@ -305,7 +338,10 @@ export default function EmployeesList() {
                         </td>
 
                         <td className="py-3 px-4">
-                          <div className="font-medium text-slate-800">{emp.department}</div>
+                          <div className="font-medium text-slate-800">
+                            {emp.department}
+                          </div>
+
                           <div className="text-[11px] text-slate-400">
                             {emp.teamId?.name || 'No Team'}
                           </div>
@@ -339,9 +375,13 @@ export default function EmployeesList() {
                               <button
                                 onClick={() => {
                                   setStatusTarget(emp);
+
                                   setNewStatusValue(
-                                    emp.status === 'ACTIVE' ? 'DEACTIVATED' : 'ACTIVE'
+                                    emp.status === 'ACTIVE'
+                                      ? 'DEACTIVATED'
+                                      : 'ACTIVE'
                                   );
+
                                   setStatusConfirmOpen(true);
                                 }}
                                 className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition ${
@@ -350,7 +390,9 @@ export default function EmployeesList() {
                                     : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
                                 }`}
                               >
-                                {emp.status === 'ACTIVE' ? 'Deactivate' : 'Reactivate'}
+                                {emp.status === 'ACTIVE'
+                                  ? 'Deactivate'
+                                  : 'Reactivate'}
                               </button>
                             )}
                           </div>
@@ -359,7 +401,10 @@ export default function EmployeesList() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="7" className="py-12 text-center text-slate-400">
+                      <td
+                        colSpan="7"
+                        className="py-12 text-center text-slate-400"
+                      >
                         No employees found matching query.
                       </td>
                     </tr>
@@ -381,15 +426,22 @@ export default function EmployeesList() {
             <div className="space-y-6 text-xs">
               {/* Level 1: Super Admin */}
               <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200">
-                <div className="font-bold text-amber-900 mb-2">Executive Super Admins</div>
+                <div className="font-bold text-amber-900 mb-2">
+                  Executive Super Admins
+                </div>
+
                 <div className="flex flex-wrap gap-2">
                   {hierarchy.superAdmins?.map((sa) => (
                     <div
                       key={sa._id}
                       className="px-3 py-1.5 bg-white border border-amber-200 rounded-lg shadow-2xs"
                     >
-                      <span className="font-bold text-slate-900">{sa.name}</span>{' '}
-                      <span className="text-slate-400">({sa.employeeId})</span>
+                      <span className="font-bold text-slate-900">
+                        {sa.name}
+                      </span>{' '}
+                      <span className="text-slate-400">
+                        ({sa.employeeId})
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -397,31 +449,47 @@ export default function EmployeesList() {
 
               {/* Level 2: Admins */}
               <div className="p-4 rounded-xl bg-sky-50/60 border border-sky-200">
-                <div className="font-bold text-sky-900 mb-2">Operations Admins & HR</div>
+                <div className="font-bold text-sky-900 mb-2">
+                  Operations Admins & HR
+                </div>
+
                 <div className="flex flex-wrap gap-2">
-                  {[...(hierarchy.admins || []), ...(hierarchy.hrAdmins || [])].map((ad) => (
-                    <div
-                      key={ad._id}
-                      className="px-3 py-1.5 bg-white border border-sky-200 rounded-lg shadow-2xs"
-                    >
-                      <span className="font-bold text-slate-900">{ad.name}</span>{' '}
-                      <span className="text-slate-500">[{ad.role}]</span>
-                    </div>
-                  ))}
+                  {[...(hierarchy.admins || []), ...(hierarchy.hrAdmins || [])].map(
+                    (ad) => (
+                      <div
+                        key={ad._id}
+                        className="px-3 py-1.5 bg-white border border-sky-200 rounded-lg shadow-2xs"
+                      >
+                        <span className="font-bold text-slate-900">
+                          {ad.name}
+                        </span>{' '}
+                        <span className="text-slate-500">
+                          [{ad.role}]
+                        </span>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
 
               {/* Level 3: Team Leads */}
               <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-200">
-                <div className="font-bold text-indigo-900 mb-2">Team Leaders</div>
+                <div className="font-bold text-indigo-900 mb-2">
+                  Team Leaders
+                </div>
+
                 <div className="flex flex-wrap gap-2">
                   {hierarchy.teamLeads?.map((tl) => (
                     <div
                       key={tl._id}
                       className="px-3 py-1.5 bg-white border border-indigo-200 rounded-lg shadow-2xs"
                     >
-                      <span className="font-bold text-slate-900">{tl.name}</span>{' '}
-                      <span className="text-slate-400 font-mono">({tl.department})</span>
+                      <span className="font-bold text-slate-900">
+                        {tl.name}
+                      </span>{' '}
+                      <span className="text-slate-400 font-mono">
+                        ({tl.department})
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -430,16 +498,22 @@ export default function EmployeesList() {
               {/* Level 4: Callers and BDEs */}
               <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200">
                 <div className="font-bold text-emerald-900 mb-2">
-                  Calling Agents & Field BDEs ({hierarchy.callers?.length || 0})
+                  Calling Agents & Field BDEs (
+                  {hierarchy.callers?.length || 0})
                 </div>
+
                 <div className="flex flex-wrap gap-2">
                   {hierarchy.callers?.map((c) => (
                     <div
                       key={c._id}
                       className="px-3 py-1.5 bg-white border border-emerald-200 rounded-lg shadow-2xs"
                     >
-                      <span className="font-semibold text-slate-900">{c.name}</span>{' '}
-                      <span className="text-[10px] text-emerald-700">[{c.role}]</span>
+                      <span className="font-semibold text-slate-900">
+                        {c.name}
+                      </span>{' '}
+                      <span className="text-[10px] text-emerald-700">
+                        [{c.role}]
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -460,19 +534,30 @@ export default function EmployeesList() {
           {sourceEmployee && (
             <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-xl space-y-2">
               <div className="flex justify-between">
-                <span className="text-slate-500">Source Employee:</span>
+                <span className="text-slate-500">
+                  Source Employee:
+                </span>
+
                 <span className="font-bold text-slate-900">
                   {sourceEmployee.name} ({sourceEmployee.employeeId})
                 </span>
               </div>
+
               <div className="flex justify-between">
-                <span className="text-slate-500">Active Leads to Transfer:</span>
+                <span className="text-slate-500">
+                  Active Leads to Transfer:
+                </span>
+
                 <span className="font-bold text-amber-900">
                   {transferPreview?.leadsCount || 0} leads
                 </span>
               </div>
+
               <div className="flex justify-between">
-                <span className="text-slate-500">Pending Follow-ups:</span>
+                <span className="text-slate-500">
+                  Pending Follow-ups:
+                </span>
+
                 <span className="font-bold text-slate-800">
                   {transferPreview?.followUpsCount || 0} follow-ups
                 </span>
@@ -481,22 +566,27 @@ export default function EmployeesList() {
           )}
 
           <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 leading-relaxed">
-            <span className="font-bold text-slate-800">Historical Preservation Guarantee:</span> All
-            past call logs, notes, and activity created by {sourceEmployee?.name} will remain
-            permanently authored by {sourceEmployee?.name}. Only future active responsibility
-            shifts to the target employee.
+            <span className="font-bold text-slate-800">
+              Historical Preservation Guarantee:
+            </span>{' '}
+            All past call logs, notes, and activity created by{' '}
+            {sourceEmployee?.name} will remain permanently authored by{' '}
+            {sourceEmployee?.name}. Only future active responsibility shifts
+            to the target employee.
           </div>
 
           <div>
             <label className="block font-semibold text-slate-700 mb-1">
               Select Target Employee to Receive Leads *
             </label>
+
             <select
               value={targetEmployeeId}
               onChange={(e) => setTargetEmployeeId(e.target.value)}
               className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:border-amber-500 focus:outline-none"
             >
               <option value="">-- Choose Active Employee --</option>
+
               {activeTargetEmployees.map((emp) => (
                 <option key={emp._id} value={emp._id}>
                   {emp.name} — {emp.role} ({emp.employeeId})
@@ -506,7 +596,10 @@ export default function EmployeesList() {
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Reason for Transfer</label>
+            <label className="block font-semibold text-slate-700 mb-1">
+              Reason for Transfer
+            </label>
+
             <input
               type="text"
               value={transferReason}
@@ -523,8 +616,13 @@ export default function EmployeesList() {
               onChange={(e) => setDeactivateSource(e.target.checked)}
               className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
             />
-            <label htmlFor="deactCheckbox" className="font-medium text-slate-700">
-              Mark {sourceEmployee?.name} as RESIGNED / DEACTIVATED after transfer
+
+            <label
+              htmlFor="deactCheckbox"
+              className="font-medium text-slate-700"
+            >
+              Mark {sourceEmployee?.name} as RESIGNED / DEACTIVATED after
+              transfer
             </label>
           </div>
 
@@ -536,13 +634,16 @@ export default function EmployeesList() {
             >
               Cancel
             </button>
+
             <button
               type="button"
               disabled={!targetEmployeeId || transferring}
               onClick={handleExecuteTransfer}
               className="px-5 py-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold rounded-xl transition shadow-xs"
             >
-              {transferring ? 'Transferring Responsibilities...' : 'Confirm Workload Transfer'}
+              {transferring
+                ? 'Transferring Responsibilities...'
+                : 'Confirm Workload Transfer'}
             </button>
           </div>
         </div>
@@ -555,7 +656,10 @@ export default function EmployeesList() {
         title="Add New Employee Record"
         maxWidth="max-w-lg"
       >
-        <form onSubmit={handleCreateEmployee} className="space-y-4 text-xs">
+        <form
+          onSubmit={handleCreateEmployee}
+          className="space-y-4 text-xs"
+        >
           {addError && (
             <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 flex-shrink-0" />
@@ -565,34 +669,42 @@ export default function EmployeesList() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-<<<<<<< HEAD
               <label className="block font-semibold text-slate-700 mb-1">
-                Employee ID <span className="text-slate-400 font-normal">(Optional)</span>
+                Employee ID{' '}
+                <span className="text-slate-400 font-normal">
+                  (Optional)
+                </span>
               </label>
+
               <input
                 type="text"
                 value={newEmployee.employeeId}
-                onChange={(e) => setNewEmployee({ ...newEmployee, employeeId: e.target.value })}
+                onChange={(e) =>
+                  setNewEmployee({
+                    ...newEmployee,
+                    employeeId: e.target.value
+                  })
+                }
                 placeholder="Auto-generated if empty"
-=======
-              <label className="block font-semibold text-slate-700 mb-1">Employee ID *</label>
-              <input
-                type="text"
-                required
-                value={newEmployee.employeeId}
-                onChange={(e) => setNewEmployee({ ...newEmployee, employeeId: e.target.value })}
-                placeholder="e.g. EMP015"
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono focus:border-amber-500 focus:outline-none"
               />
             </div>
+
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Full Name *</label>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Full Name *
+              </label>
+
               <input
                 type="text"
                 required
                 value={newEmployee.name}
-                onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                onChange={(e) =>
+                  setNewEmployee({
+                    ...newEmployee,
+                    name: e.target.value
+                  })
+                }
                 placeholder="e.g. Rajesh Kumar"
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:outline-none"
               />
@@ -601,23 +713,40 @@ export default function EmployeesList() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Email Address *</label>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Email Address *
+              </label>
+
               <input
                 type="email"
                 required
                 value={newEmployee.email}
-                onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
+                onChange={(e) =>
+                  setNewEmployee({
+                    ...newEmployee,
+                    email: e.target.value
+                  })
+                }
                 placeholder="rajesh@company.com"
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:outline-none"
               />
             </div>
+
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Phone Number *</label>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Phone Number *
+              </label>
+
               <input
                 type="text"
                 required
                 value={newEmployee.phone}
-                onChange={(e) => setNewEmployee({ ...newEmployee, phone: e.target.value })}
+                onChange={(e) =>
+                  setNewEmployee({
+                    ...newEmployee,
+                    phone: e.target.value
+                  })
+                }
                 placeholder="9876543210"
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:outline-none"
               />
@@ -626,42 +755,61 @@ export default function EmployeesList() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">System Role *</label>
+              <label className="block font-semibold text-slate-700 mb-1">
+                System Role *
+              </label>
+
               <select
                 value={newEmployee.role}
-<<<<<<< HEAD
                 onChange={(e) => {
                   const role = e.target.value;
                   let dept = newEmployee.department;
-                  if (role === 'ADMIN') dept = 'Operations & Administration';
-                  else if (role === 'BDE') dept = 'Field Sales';
-                  else if (role === 'TELECALLER') dept = 'Inside Sales';
-                  setNewEmployee({ ...newEmployee, role, department: dept });
+
+                  if (role === 'ADMIN') {
+                    dept = 'Operations & Administration';
+                  } else if (role === 'BDE') {
+                    dept = 'Field Sales';
+                  } else if (role === 'TELECALLER') {
+                    dept = 'Inside Sales';
+                  }
+
+                  setNewEmployee({
+                    ...newEmployee,
+                    role,
+                    department: dept
+                  });
                 }}
-=======
-                onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:outline-none font-medium"
               >
                 <option value="TELECALLER">Telecaller</option>
                 <option value="BDE">BDE (Business Dev Exec)</option>
                 <option value="EMPLOYEE">General Employee</option>
                 <option value="TEAM_LEAD">Team Lead</option>
-<<<<<<< HEAD
-                {(isSuperAdmin || isAdmin) && <option value="ADMIN">Admin (Manager)</option>}
-                {(isSuperAdmin || isHRAdmin) && <option value="HR_ADMIN">HR Admin</option>}
-=======
-                {isSuperAdmin && <option value="ADMIN">Admin</option>}
-                {isSuperAdmin && <option value="HR_ADMIN">HR Admin</option>}
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
+
+                {(isSuperAdmin || isAdmin) && (
+                  <option value="ADMIN">Admin (Manager)</option>
+                )}
+
+                {(isSuperAdmin || isHRAdmin) && (
+                  <option value="HR_ADMIN">HR Admin</option>
+                )}
               </select>
             </div>
+
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Department</label>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Department
+              </label>
+
               <input
                 type="text"
                 value={newEmployee.department}
-                onChange={(e) => setNewEmployee({ ...newEmployee, department: e.target.value })}
+                onChange={(e) =>
+                  setNewEmployee({
+                    ...newEmployee,
+                    department: e.target.value
+                  })
+                }
                 placeholder="Inside Sales"
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:outline-none"
               />
@@ -669,12 +817,20 @@ export default function EmployeesList() {
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Initial Password *</label>
+            <label className="block font-semibold text-slate-700 mb-1">
+              Initial Password *
+            </label>
+
             <input
               type="password"
               required
               value={newEmployee.password}
-              onChange={(e) => setNewEmployee({ ...newEmployee, password: e.target.value })}
+              onChange={(e) =>
+                setNewEmployee({
+                  ...newEmployee,
+                  password: e.target.value
+                })
+              }
               placeholder="Minimum 6 characters"
               className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:outline-none"
             />
@@ -688,6 +844,7 @@ export default function EmployeesList() {
             >
               Cancel
             </button>
+
             <button
               type="submit"
               disabled={adding}
