@@ -5,9 +5,19 @@ const { logAudit } = require('../services/auditService');
 const { EMPLOYEE_STATUS } = require('../config/constants');
 
 // JWT configuration
+<<<<<<< HEAD
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secure_yellow_pages_crm_jwt_secret_key_2024';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
+=======
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET is not configured in .env');
+}
+
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
 
 /**
  * Login employee
@@ -375,9 +385,13 @@ const signup = async (req, res, next) => {
       email,
       phone,
       password,
+<<<<<<< HEAD
       confirmPassword,
       role: requestedRole,
       adminKey
+=======
+      confirmPassword
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
     } = req.body;
 
     if (!name || !email || !phone || !password || !confirmPassword) {
@@ -398,10 +412,17 @@ const signup = async (req, res, next) => {
       );
     }
 
+<<<<<<< HEAD
     if (password.length < 6) {
       return error(
         res,
         'Password must be at least 6 characters',
+=======
+    if (password.length < 8) {
+      return error(
+        res,
+        'Password must be at least 8 characters',
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
         'PASSWORD_TOO_SHORT',
         400
       );
@@ -419,11 +440,26 @@ const signup = async (req, res, next) => {
       return error(res, 'Phone must contain 10 to 15 digits', 'INVALID_PHONE', 400);
     }
 
+<<<<<<< HEAD
+=======
+    // Only the first account can be created publicly.
+    const employeeCount = await Employee.countDocuments({ isDeleted: false });
+    if (employeeCount > 0) {
+      return error(
+        res,
+        'Initial signup is already completed. Please sign in.',
+        'SETUP_ALREADY_COMPLETED',
+        403
+      );
+    }
+
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
     const existingEmail = await Employee.findOne({ email: normalizedEmail });
     if (existingEmail) {
       return error(res, 'An account with this email already exists', 'EMAIL_EXISTS', 409);
     }
 
+<<<<<<< HEAD
     const employeeCount = await Employee.countDocuments({ isDeleted: false });
     let assignedRole = 'TELECALLER';
     let assignedDept = 'Inside Sales';
@@ -455,25 +491,41 @@ const signup = async (req, res, next) => {
 
     const employee = await Employee.create({
       employeeId: newEmployeeId,
+=======
+    const passwordHash = await Employee.hashPassword(password);
+
+    const employee = await Employee.create({
+      employeeId: 'ADMIN001',
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
       name: cleanName,
       email: normalizedEmail,
       phone: cleanPhone,
       passwordHash,
+<<<<<<< HEAD
       role: assignedRole,
       department: assignedDept,
+=======
+      role: 'SUPER_ADMIN',
+      department: 'Administration',
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
       status: EMPLOYEE_STATUS.ACTIVE,
       isDeleted: false
     });
 
     await logAudit({
       actor: employee,
+<<<<<<< HEAD
       action: employeeCount === 0 ? 'INITIAL_SIGNUP' : 'USER_SIGNUP',
+=======
+      action: 'INITIAL_SIGNUP',
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
       entity: 'EMPLOYEE',
       entityId: employee._id,
       ipAddress: req.ip || req.headers['x-forwarded-for'] || '',
       userAgent: req.headers['user-agent'] || ''
     });
 
+<<<<<<< HEAD
     const token = jwt.sign(
       {
         id: employee._id.toString(),
@@ -495,6 +547,12 @@ const signup = async (req, res, next) => {
         user: employee.toSafeObject()
       },
       `${assignedRole === 'ADMIN' ? 'Admin' : 'User'} account created successfully. Welcome to Yellow Pages CRM!`,
+=======
+    return success(
+      res,
+      employee.toSafeObject(),
+      'Super Admin account created successfully. Please sign in.',
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
       201
     );
   } catch (err) {

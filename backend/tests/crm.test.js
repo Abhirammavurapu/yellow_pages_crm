@@ -10,20 +10,32 @@ const CallHistory = require('../src/models/CallHistory');
 const FollowUp = require('../src/models/FollowUp');
 const { acquireLock, releaseLock } = require('../src/services/lockService');
 const { transferEmployeeWorkload } = require('../src/services/transferService');
+<<<<<<< HEAD
 const connectDB = require('../src/config/db');
 
 test.before(async () => {
   if (mongoose.connection.readyState === 0) {
     await connectDB();
+=======
+
+test.before(async () => {
+  const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/yellow_pages_crm';
+  if (mongoose.connection.readyState === 0) {
+    await mongoose.connect(uri);
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
   }
 });
 
 test.after(async () => {
+<<<<<<< HEAD
   if (connectDB.disconnectDB) {
     await connectDB.disconnectDB();
   } else {
     await mongoose.disconnect();
   }
+=======
+  await mongoose.disconnect();
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
 });
 
 test('1. Phone Normalizer: handles +91, 91, leading 0, and raw 10-digit Indian numbers', () => {

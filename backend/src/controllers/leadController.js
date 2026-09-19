@@ -692,6 +692,7 @@ const createLead = async (
               'Initial assignment'
           }
         ];
+<<<<<<< HEAD
     } else if ([ROLES.EMPLOYEE, ROLES.TELECALLER, ROLES.BDE].includes(req.user.role)) {
       /* Auto-assign to creator so it immediately appears in their queue */
       newLeadData.assignedTo = req.user._id;
@@ -706,6 +707,8 @@ const createLead = async (
           reason: 'Self-created lead assignment'
         }
       ];
+=======
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
     }
 
 

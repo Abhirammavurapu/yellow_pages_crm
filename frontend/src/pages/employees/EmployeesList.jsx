@@ -197,6 +197,7 @@ export default function EmployeesList() {
             </button>
           </div>
 
+<<<<<<< HEAD
           {(isSuperAdmin || isAdmin) && (
             <button
               onClick={() => {
@@ -233,6 +234,12 @@ export default function EmployeesList() {
                 setAddModalOpen(true);
               }}
               className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5 cursor-pointer"
+=======
+          {(isSuperAdmin || isHRAdmin) && (
+            <button
+              onClick={() => setAddModalOpen(true)}
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5"
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
             >
               <UserPlus className="w-4 h-4" />
               <span>Add Employee</span>
@@ -558,6 +565,7 @@ export default function EmployeesList() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
+<<<<<<< HEAD
               <label className="block font-semibold text-slate-700 mb-1">
                 Employee ID <span className="text-slate-400 font-normal">(Optional)</span>
               </label>
@@ -566,6 +574,15 @@ export default function EmployeesList() {
                 value={newEmployee.employeeId}
                 onChange={(e) => setNewEmployee({ ...newEmployee, employeeId: e.target.value })}
                 placeholder="Auto-generated if empty"
+=======
+              <label className="block font-semibold text-slate-700 mb-1">Employee ID *</label>
+              <input
+                type="text"
+                required
+                value={newEmployee.employeeId}
+                onChange={(e) => setNewEmployee({ ...newEmployee, employeeId: e.target.value })}
+                placeholder="e.g. EMP015"
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono focus:border-amber-500 focus:outline-none"
               />
             </div>
@@ -612,6 +629,7 @@ export default function EmployeesList() {
               <label className="block font-semibold text-slate-700 mb-1">System Role *</label>
               <select
                 value={newEmployee.role}
+<<<<<<< HEAD
                 onChange={(e) => {
                   const role = e.target.value;
                   let dept = newEmployee.department;
@@ -620,14 +638,22 @@ export default function EmployeesList() {
                   else if (role === 'TELECALLER') dept = 'Inside Sales';
                   setNewEmployee({ ...newEmployee, role, department: dept });
                 }}
+=======
+                onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:outline-none font-medium"
               >
                 <option value="TELECALLER">Telecaller</option>
                 <option value="BDE">BDE (Business Dev Exec)</option>
                 <option value="EMPLOYEE">General Employee</option>
                 <option value="TEAM_LEAD">Team Lead</option>
+<<<<<<< HEAD
                 {(isSuperAdmin || isAdmin) && <option value="ADMIN">Admin (Manager)</option>}
                 {(isSuperAdmin || isHRAdmin) && <option value="HR_ADMIN">HR Admin</option>}
+=======
+                {isSuperAdmin && <option value="ADMIN">Admin</option>}
+                {isSuperAdmin && <option value="HR_ADMIN">HR Admin</option>}
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
               </select>
             </div>
             <div>

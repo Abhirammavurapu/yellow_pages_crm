@@ -63,6 +63,7 @@ export default function LeadsList() {
     businessName: '',
     ownerName: '',
     phone: '',
+<<<<<<< HEAD
     alternatePhone: '',
     email: '',
     category: 'Restaurants & Food',
@@ -78,6 +79,17 @@ export default function LeadsList() {
   });
   const [addError, setAddError] = useState('');
   const [addSuccess, setAddSuccess] = useState('');
+=======
+    email: '',
+    category: 'Restaurants & Food',
+    state: 'Telangana',
+    city: 'Hyderabad',
+    address: '',
+    priority: 'MEDIUM',
+    notes: ''
+  });
+  const [addError, setAddError] = useState('');
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
   const [submittingLead, setSubmittingLead] = useState(false);
 
   // Fetch initial location states and employee list
@@ -213,6 +225,7 @@ export default function LeadsList() {
   const handleCreateLead = async (e) => {
     e.preventDefault();
     setAddError('');
+<<<<<<< HEAD
     setAddSuccess('');
     setSubmittingLead(true);
     try {
@@ -245,6 +258,26 @@ export default function LeadsList() {
           });
           fetchLeads();
         }, 700);
+=======
+    setSubmittingLead(true);
+    try {
+      const res = await api.post('/leads', newLeadForm);
+      if (res.success) {
+        setAddLeadModalOpen(false);
+        setNewLeadForm({
+          businessName: '',
+          ownerName: '',
+          phone: '',
+          email: '',
+          category: 'Restaurants & Food',
+          state: 'Telangana',
+          city: 'Hyderabad',
+          address: '',
+          priority: 'MEDIUM',
+          notes: ''
+        });
+        fetchLeads();
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
       }
     } catch (err) {
       setAddError(err.message || 'Failed to create lead');
@@ -712,7 +745,11 @@ export default function LeadsList() {
         isOpen={addLeadModalOpen}
         onClose={() => setAddLeadModalOpen(false)}
         title="Add New Yellow Pages Lead"
+<<<<<<< HEAD
         maxWidth="max-w-2xl"
+=======
+        maxWidth="max-w-xl"
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
       >
         <form onSubmit={handleCreateLead} className="space-y-4 text-xs">
           {addError && (
@@ -722,6 +759,7 @@ export default function LeadsList() {
             </div>
           )}
 
+<<<<<<< HEAD
           {addSuccess && (
             <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center gap-2 font-medium">
               <CheckSquare className="w-4 h-4 flex-shrink-0 text-emerald-600" />
@@ -729,6 +767,8 @@ export default function LeadsList() {
             </div>
           )}
 
+=======
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-700 mb-1">Business Name *</label>
@@ -737,7 +777,11 @@ export default function LeadsList() {
                 required
                 value={newLeadForm.businessName}
                 onChange={(e) => setNewLeadForm({ ...newLeadForm, businessName: e.target.value })}
+<<<<<<< HEAD
                 placeholder="e.g. Radhe Krishna Sweets & Bakery"
+=======
+                placeholder="e.g. Radhe Krishna Sweets"
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:outline-none"
               />
             </div>
@@ -753,14 +797,21 @@ export default function LeadsList() {
             </div>
           </div>
 
+<<<<<<< HEAD
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block font-semibold text-slate-700 mb-1">Primary Phone *</label>
+=======
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Phone Number *</label>
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
               <input
                 type="text"
                 required
                 value={newLeadForm.phone}
                 onChange={(e) => setNewLeadForm({ ...newLeadForm, phone: e.target.value })}
+<<<<<<< HEAD
                 placeholder="9876543210 or +91..."
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:outline-none font-mono"
               />
@@ -773,6 +824,10 @@ export default function LeadsList() {
                 onChange={(e) => setNewLeadForm({ ...newLeadForm, alternatePhone: e.target.value })}
                 placeholder="Optional secondary phone"
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:outline-none font-mono"
+=======
+                placeholder="e.g. 9876543210 or +91..."
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:outline-none"
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
               />
             </div>
             <div>
@@ -816,7 +871,11 @@ export default function LeadsList() {
               />
             </div>
             <div>
+<<<<<<< HEAD
               <label className="block font-semibold text-slate-700 mb-1">City / Hub</label>
+=======
+              <label className="block font-semibold text-slate-700 mb-1">City</label>
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
               <input
                 type="text"
                 value={newLeadForm.city}
@@ -827,6 +886,7 @@ export default function LeadsList() {
             </div>
           </div>
 
+<<<<<<< HEAD
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-700 mb-1">District</label>
@@ -902,6 +962,8 @@ export default function LeadsList() {
             </div>
           </div>
 
+=======
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
           <div>
             <label className="block font-semibold text-slate-700 mb-1">Street Address</label>
             <input
@@ -913,6 +975,7 @@ export default function LeadsList() {
             />
           </div>
 
+<<<<<<< HEAD
           <div>
             <label className="block font-semibold text-slate-700 mb-1">Initial Inquiry / Calling Notes</label>
             <textarea
@@ -929,12 +992,20 @@ export default function LeadsList() {
               type="button"
               onClick={() => setAddLeadModalOpen(false)}
               className="px-4 py-2 border border-slate-300 rounded-xl font-semibold hover:bg-slate-50 text-slate-700"
+=======
+          <div className="flex justify-end gap-2 pt-3">
+            <button
+              type="button"
+              onClick={() => setAddLeadModalOpen(false)}
+              className="px-4 py-2 border border-slate-300 rounded-lg font-semibold hover:bg-slate-50"
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submittingLead}
+<<<<<<< HEAD
               className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-sm flex items-center gap-1.5"
             >
               {submittingLead ? (
@@ -945,6 +1016,11 @@ export default function LeadsList() {
               ) : (
                 <span>Create Lead</span>
               )}
+=======
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg transition"
+            >
+              {submittingLead ? 'Validating...' : 'Create Lead'}
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
             </button>
           </div>
         </form>

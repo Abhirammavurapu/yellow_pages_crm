@@ -299,6 +299,7 @@ export default function LeadDetail() {
         </div>
 
         <div className="flex items-center gap-2.5">
+<<<<<<< HEAD
           {/* Quick Lead Status Selector */}
           <select
             value={lead.currentStatus}
@@ -327,6 +328,8 @@ export default function LeadDetail() {
             <option value="WRONG_NUMBER">Status: Wrong Number</option>
           </select>
 
+=======
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
           {['INTERESTED', 'READY_FOR_PAYMENT'].includes(lead.currentStatus) && (
             <button
               onClick={() => setPaymentModalOpen(true)}

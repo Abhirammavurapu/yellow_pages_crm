@@ -14,7 +14,11 @@ const authenticateToken = async (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
+<<<<<<< HEAD
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'super_secure_yellow_pages_crm_jwt_secret_key_2024');
+=======
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'super_secret_jwt_key_yellow_pages_crm_production_2026!');
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
 
     const employee = await Employee.findById(decoded.id).select('-passwordHash');
     if (!employee) {

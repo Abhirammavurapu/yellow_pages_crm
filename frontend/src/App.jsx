@@ -68,6 +68,7 @@ function SetupGate({ children }) {
 function SetupRedirect({ setupRequired, children }) {
   const location = window.location.pathname;
   if (setupRequired && location !== '/signup') return <Navigate to="/signup" replace />;
+<<<<<<< HEAD
   return children;
 }
 
@@ -75,6 +76,9 @@ function PublicOnlyRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
   if (loading) return <LoadingScreen />;
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+=======
+  if (!setupRequired && location === '/signup') return <Navigate to="/login" replace />;
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
   return children;
 }
 
@@ -90,8 +94,13 @@ export default function App() {
   return (
     <SetupGate>
       <Routes>
+<<<<<<< HEAD
         <Route path="/signup" element={<PublicOnlyRoute><Signup /></PublicOnlyRoute>} />
         <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
+=======
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
 
         <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

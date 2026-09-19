@@ -22,7 +22,11 @@ router.get(
 
 router.post(
   '/',
+<<<<<<< HEAD
   authorizeRoles(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.HR_ADMIN),
+=======
+  authorizeRoles(ROLES.SUPER_ADMIN, ROLES.HR_ADMIN),
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
   employeeController.createEmployee
 );
 

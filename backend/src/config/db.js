@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const dns = require('dns');
 
+<<<<<<< HEAD
 try {
   // Only use external DNS for SRV / Atlas connections if needed
   if (process.env.MONGODB_URI && process.env.MONGODB_URI.startsWith('mongodb+srv')) {
@@ -19,6 +20,20 @@ const connectDB = async () => {
   try {
     const conn = await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: isLocal ? 2500 : 10000,
+=======
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+
+const connectDB = async () => {
+  try {
+    const mongoUri = process.env.MONGODB_URI;
+
+    if (!mongoUri) {
+      throw new Error('MONGODB_URI is missing in .env');
+    }
+
+    const conn = await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 15000,
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
       autoIndex: true
     });
 
@@ -26,6 +41,7 @@ const connectDB = async () => {
       `[MongoDB] Connected successfully: ${conn.connection.host}/${conn.connection.name}`
     );
   } catch (error) {
+<<<<<<< HEAD
     if (isLocal) {
       console.warn(`[MongoDB] Local MongoDB on 27017 not detected (${error.message}).`);
       console.log(`[MongoDB] Initializing automated In-Memory MongoDB engine...`);
@@ -74,10 +90,14 @@ const connectDB = async () => {
 
     console.error(`[MongoDB] Connection error: ${error.message}`);
     console.warn(`[MongoDB] Please ensure MongoDB is running or specify a valid MONGODB_URI in backend/.env`);
+=======
+    console.error(`[MongoDB] Connection error: ${error.message}`);
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
     process.exit(1);
   }
 };
 
+<<<<<<< HEAD
 const disconnectDB = async () => {
   try {
     await mongoose.disconnect();
@@ -92,4 +112,6 @@ const disconnectDB = async () => {
 
 connectDB.disconnectDB = disconnectDB;
 
+=======
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
 module.exports = connectDB;

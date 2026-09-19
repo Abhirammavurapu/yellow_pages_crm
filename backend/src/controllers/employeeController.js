@@ -210,6 +210,10 @@ const createEmployee = async (
     } = req.body;
 
     if (
+<<<<<<< HEAD
+=======
+      !employeeId ||
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
       !name ||
       !email ||
       !phone ||
@@ -224,6 +228,7 @@ const createEmployee = async (
       );
     }
 
+<<<<<<< HEAD
     let finalEmpId = employeeId ? employeeId.toUpperCase().trim() : '';
     if (!finalEmpId) {
       const count = await Employee.countDocuments();
@@ -231,12 +236,21 @@ const createEmployee = async (
       finalEmpId = `${prefix}${String(count + 1).padStart(3, '0')}`;
     }
 
+=======
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
     const normalizedEmail =
       email
         .toLowerCase()
         .trim();
 
+<<<<<<< HEAD
     const normalizedEmployeeId = finalEmpId;
+=======
+    const normalizedEmployeeId =
+      employeeId
+        .toUpperCase()
+        .trim();
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
 
     // Check duplicate email
     const existingEmail =

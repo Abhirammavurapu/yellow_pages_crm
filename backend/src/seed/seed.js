@@ -15,6 +15,7 @@ const { normalizePhoneNumber } = require('../utils/phoneNormalizer');
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/yellow_pages_crm';
 
+<<<<<<< HEAD
 async function seedDatabase(isAlreadyConnected = false) {
   try {
     if (!isAlreadyConnected && mongoose.connection.readyState === 0) {
@@ -22,6 +23,13 @@ async function seedDatabase(isAlreadyConnected = false) {
       await mongoose.connect(MONGODB_URI);
       console.log('[Seed] Connected to database.');
     }
+=======
+async function seedDatabase() {
+  try {
+    console.log('[Seed] Connecting to MongoDB:', MONGODB_URI);
+    await mongoose.connect(MONGODB_URI);
+    console.log('[Seed] Connected to database.');
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
 
     // Clear existing data
     console.log('[Seed] Clearing existing collections...');
@@ -521,6 +529,7 @@ async function seedDatabase(isAlreadyConnected = false) {
     console.log('⚠️  IMPORTANT: Demo passwords must be changed in production.');
     console.log('=============================================\n');
 
+<<<<<<< HEAD
     if (require.main === module) {
       process.exit(0);
     }
@@ -538,3 +547,13 @@ if (require.main === module) {
 }
 
 module.exports = { seedDatabase };
+=======
+    process.exit(0);
+  } catch (err) {
+    console.error('[Seed] Error during database seeding:', err);
+    process.exit(1);
+  }
+}
+
+seedDatabase();
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef

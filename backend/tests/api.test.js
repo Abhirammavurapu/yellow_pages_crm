@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert');
+<<<<<<< HEAD
 require('dotenv').config();
 
 let server;
@@ -19,12 +20,27 @@ test.before(async () => {
   const app = require('../src/server');
   const mongoose = require('mongoose');
   await new Promise((resolve) => {
+=======
+const http = require('http');
+require('dotenv').config();
+
+const mongoose = require('mongoose');
+const app = require('../src/server');
+
+let server;
+let baseUrl;
+
+test.before(async () => {
+  await new Promise((resolve) => {
+    // Start on test port
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
     const testPort = 5055;
     server = app.listen(testPort, () => {
       baseUrl = `http://localhost:${testPort}/api`;
       resolve();
     });
   });
+<<<<<<< HEAD
 
   if (mongoose.connection.readyState !== 1) {
     await new Promise((resolve) => {
@@ -32,14 +48,21 @@ test.before(async () => {
       setTimeout(resolve, 5000);
     });
   }
+=======
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
 });
 
 test.after(async () => {
   if (server) {
     await new Promise((resolve) => server.close(resolve));
+<<<<<<< HEAD
     const mongoose = require('mongoose');
     await mongoose.disconnect();
   }
+=======
+  }
+  await mongoose.disconnect();
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
 });
 
 async function apiRequest(endpoint, options = {}) {
@@ -166,6 +189,7 @@ test('API 4: Location Hierarchy Endpoints', async () => {
   assert.strictEqual(districtsRes.status, 200);
   assert.ok(districtsRes.data.data.includes('Hyderabad'));
 });
+<<<<<<< HEAD
 
 test('API 5: Public User Sign Up and Direct Authentication', async () => {
   const randomEmail = `caller.${Date.now()}@example.com`;
@@ -297,3 +321,5 @@ test('API 8: Duplicate Phone Prevention', async () => {
   });
   assert.strictEqual(second.status, 409, 'Duplicate phone must be rejected with 409');
 });
+=======
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef

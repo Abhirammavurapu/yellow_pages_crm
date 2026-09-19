@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
+<<<<<<< HEAD
 import { Link } from 'react-router-dom';
 import { Menu, Search, Bell, LogOut, Shield, Plus } from 'lucide-react';
+=======
+import { Menu, Search, Bell, LogOut, Shield } from 'lucide-react';
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
 import { useAuth } from '../context/AuthContext';
 import GlobalSearchModal from './GlobalSearchModal';
 
@@ -35,6 +39,7 @@ export default function Navbar({ onMenuToggle }) {
         </div>
 
         <div className="flex items-center gap-3 sm:gap-4">
+<<<<<<< HEAD
           {/* Quick Action Shortcuts */}
           <div className="hidden md:flex items-center gap-2">
             {(user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN') && (
@@ -56,6 +61,8 @@ export default function Navbar({ onMenuToggle }) {
             </Link>
           </div>
 
+=======
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
           {/* Active Employee Role Pill */}
           <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700">
             <Shield className="w-3.5 h-3.5 text-amber-600" />

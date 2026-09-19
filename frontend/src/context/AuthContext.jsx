@@ -84,6 +84,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+<<<<<<< HEAD
   // SIGNUP
   const signup = async (formData) => {
     try {
@@ -103,6 +104,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+=======
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 
   const isAdmin = [
@@ -130,7 +133,10 @@ export const AuthProvider = ({ children }) => {
         token,
         loading,
         login,
+<<<<<<< HEAD
         signup,
+=======
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
         logout,
 
         isAuthenticated: !!token && !!user,

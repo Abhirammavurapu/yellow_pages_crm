@@ -179,6 +179,7 @@ npm run build
 
 ---
 
+<<<<<<< HEAD
 ### Quick 1-Command Docker Deployment (Full Stack)
 Run the entire production stack (MongoDB 7, Express Backend, and Nginx SPA Frontend) with Docker Compose:
 ```bash
@@ -189,15 +190,25 @@ docker compose up --build -d
 * **MongoDB**: `localhost:27017`
 
 ### Frontend (Vercel / Netlify / Cloudflare Pages)
+=======
+## 🚢 Production Deployment
+
+### Frontend (Vercel / Netlify)
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
 1. Set `VITE_API_URL` environment variable to your deployed backend API URL (e.g. `https://api.yourcrm.com/api`).
 2. Build command: `npm run build`
 3. Publish directory: `dist`
 
+<<<<<<< HEAD
 ### Backend (Render / Railway / AWS ECS / DigitalOcean)
+=======
+### Backend (Render / Railway / AWS ECS)
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
 1. Set environment variables:
    - `PORT=5000`
    - `MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/yellow_pages_crm?retryWrites=true&w=majority`
    - `JWT_SECRET=<strong_random_secret>`
+<<<<<<< HEAD
    - `ADMIN_REGISTRATION_KEY=ADMIN2024`
    - `FRONTEND_URL=https://yourcrm.com`
 2. Start command: `npm start`
@@ -213,3 +224,7 @@ npm test
 ```
 * Tests covered: Health check, RBAC login, Concurrency locks, Hierarchy locations, Public user signup, Admin passkey registration, Lead queue auto-assignment, Duplicate phone prevention, Indian phone normalizer, and Resilient workload transfers.
 
+=======
+   - `FRONTEND_URL=https://yourcrm.com`
+2. Start command: `npm start`
+>>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
