@@ -5,11 +5,6 @@ const { logAudit } = require('../services/auditService');
 const { EMPLOYEE_STATUS } = require('../config/constants');
 
 // JWT configuration
-<<<<<<< HEAD
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secure_yellow_pages_crm_jwt_secret_key_2024';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
-
-=======
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
@@ -17,393 +12,51 @@ if (!JWT_SECRET) {
   throw new Error('JWT_SECRET is not configured in .env');
 }
 
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
-
 /**
- * Login employee
- * POST /api/auth/login
+ * Generate JWT token
  */
-const login = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-
-    // Validate input
-    if (!email || !password) {
-      return error(
-        res,
-        'Email and password are required',
-        'MISSING_CREDENTIALS',
-        400
-      );
+const generateToken = (employee) => {
+  return jwt.sign(
+    {
+      id: employee._id.toString(),
+      employeeId: employee.employeeId,
+      email: employee.email,
+      role: employee.role,
+      name: employee.name
+    },
+    JWT_SECRET,
+    {
+      expiresIn: JWT_EXPIRES_IN
     }
-
-    const normalizedEmail = email.toLowerCase().trim();
-
-    // Find employee in MongoDB
-    const employee = await Employee.findOne({
-      email: normalizedEmail
-    })
-      .populate('teamId', 'name');
-
-    // Employee not found
-    if (!employee) {
-      return error(
-        res,
-        'Invalid email or password',
-        'INVALID_CREDENTIALS',
-        401
-      );
-    }
-
-    // Check password
-    const isMatch = await employee.comparePassword(password);
-
-    if (!isMatch) {
-      return error(
-        res,
-        'Invalid email or password',
-        'INVALID_CREDENTIALS',
-        401
-      );
-    }
-
-    // Check employee status
-    if (
-      employee.status === EMPLOYEE_STATUS.DEACTIVATED ||
-      employee.status === EMPLOYEE_STATUS.RESIGNED
-    ) {
-      return error(
-        res,
-        'Your account is deactivated or resigned. Please contact Super Admin.',
-        'ACCOUNT_DISABLED',
-        403
-      );
-    }
-
-    // Check deleted account
-    if (employee.isDeleted) {
-      return error(
-        res,
-        'Your account has been deleted.',
-        'ACCOUNT_DELETED',
-        403
-      );
-    }
-
-    // Generate JWT token
-    const token = jwt.sign(
-      {
-        id: employee._id.toString(),
-        employeeId: employee.employeeId,
-        email: employee.email,
-        role: employee.role,
-        name: employee.name
-      },
-      JWT_SECRET,
-      {
-        expiresIn: JWT_EXPIRES_IN
-      }
-    );
-
-    // Create login audit log
-    await logAudit({
-      actor: employee,
-      action: 'LOGIN',
-      entity: 'AUTH',
-      entityId: employee._id,
-      ipAddress:
-        req.ip ||
-        req.headers['x-forwarded-for'] ||
-        '',
-      userAgent:
-        req.headers['user-agent'] ||
-        ''
-    });
-
-    // Remove sensitive information
-    const userSafe = employee.toSafeObject();
-
-    return success(
-      res,
-      {
-        token,
-        user: userSafe
-      },
-      'Login successful',
-      200
-    );
-
-  } catch (err) {
-    next(err);
-  }
-};
-
-
-/**
- * Get current logged-in employee
- * GET /api/auth/me
- */
-const getMe = async (req, res, next) => {
-  try {
-    // Authentication middleware must provide req.user
-    if (!req.user || !req.user._id) {
-      return error(
-        res,
-        'Authentication required',
-        'UNAUTHORIZED',
-        401
-      );
-    }
-
-    // Get latest employee data directly from MongoDB
-    const employee = await Employee.findById(req.user._id)
-      .select('-passwordHash')
-      .populate(
-        'teamId',
-        'name department'
-      )
-      .populate(
-        'managerId',
-        'name employeeId role'
-      );
-
-    if (!employee) {
-      return error(
-        res,
-        'Employee not found',
-        'NOT_FOUND',
-        404
-      );
-    }
-
-    // Check deleted account
-    if (employee.isDeleted) {
-      return error(
-        res,
-        'Your account has been deleted.',
-        'ACCOUNT_DELETED',
-        403
-      );
-    }
-
-    // Check disabled account
-    if (
-      employee.status === EMPLOYEE_STATUS.DEACTIVATED ||
-      employee.status === EMPLOYEE_STATUS.RESIGNED
-    ) {
-      return error(
-        res,
-        'Your account is disabled.',
-        'ACCOUNT_DISABLED',
-        403
-      );
-    }
-
-    return success(
-      res,
-      employee,
-      'Current user fetched',
-      200
-    );
-
-  } catch (err) {
-    next(err);
-  }
-};
-
-
-/**
- * Logout employee
- * POST /api/auth/logout
- *
- * JWT is stateless, so logout is handled by
- * removing the token on the frontend.
- * We only create an audit record here.
- */
-const logout = async (req, res, next) => {
-  try {
-    if (req.user && req.user._id) {
-      await logAudit({
-        actor: req.user,
-        action: 'LOGOUT',
-        entity: 'AUTH',
-        entityId: req.user._id,
-        ipAddress:
-          req.ip ||
-          req.headers['x-forwarded-for'] ||
-          '',
-        userAgent:
-          req.headers['user-agent'] ||
-          ''
-      });
-    }
-
-    return success(
-      res,
-      null,
-      'Logged out successfully',
-      200
-    );
-
-  } catch (err) {
-    next(err);
-  }
-};
-
-
-/**
- * Change employee password
- * PUT /api/auth/change-password
- */
-const changePassword = async (req, res, next) => {
-  try {
-    const {
-      currentPassword,
-      newPassword
-    } = req.body;
-
-    // Validate fields
-    if (!currentPassword || !newPassword) {
-      return error(
-        res,
-        'Current password and new password are required',
-        'MISSING_FIELDS',
-        400
-      );
-    }
-
-    // Validate password length
-    if (newPassword.length < 6) {
-      return error(
-        res,
-        'New password must be at least 6 characters',
-        'PASSWORD_TOO_SHORT',
-        400
-      );
-    }
-
-    // Get employee from MongoDB
-    const employee = await Employee.findById(
-      req.user._id
-    );
-
-    if (!employee) {
-      return error(
-        res,
-        'Employee not found',
-        'NOT_FOUND',
-        404
-      );
-    }
-
-    // Check current password
-    const isMatch =
-      await employee.comparePassword(
-        currentPassword
-      );
-
-    if (!isMatch) {
-      return error(
-        res,
-        'Current password does not match',
-        'INVALID_CURRENT_PASSWORD',
-        400
-      );
-    }
-
-    // Hash new password
-    employee.passwordHash =
-      await Employee.hashPassword(
-        newPassword
-      );
-
-    // Save to MongoDB
-    await employee.save();
-
-    // Audit password change
-    await logAudit({
-      actor: employee,
-      action: 'CHANGE_PASSWORD',
-      entity: 'EMPLOYEE',
-      entityId: employee._id,
-      ipAddress:
-        req.ip ||
-        req.headers['x-forwarded-for'] ||
-        '',
-      userAgent:
-        req.headers['user-agent'] ||
-        ''
-    });
-
-    return success(
-      res,
-      null,
-      'Password changed successfully',
-      200
-    );
-
-  } catch (err) {
-    next(err);
-  }
-};
-
-
-/**
- * Check whether the initial CRM setup is required.
- * GET /api/auth/setup-status
- *
- * Public endpoint. Signup is only enabled when there are no employees.
- */
-const getSetupStatus = async (req, res, next) => {
-  try {
-    const employeeCount = await Employee.countDocuments({ isDeleted: false });
-
-    return success(
-      res,
-      {
-        setupRequired: employeeCount === 0,
-        employeeCount
-      },
-      'Setup status fetched',
-      200
-    );
-  } catch (err) {
-    next(err);
-  }
+  );
 };
 
 /**
- * Create the first Super Admin account.
- * POST /api/auth/signup
- *
- * This endpoint is intentionally limited to the initial setup.
+ * Signup
  */
-const signup = async (req, res, next) => {
+const signup = async (req, res) => {
   try {
     const {
       name,
       email,
       phone,
       password,
-<<<<<<< HEAD
       confirmPassword,
       role: requestedRole,
       adminKey
-=======
-      confirmPassword
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
     } = req.body;
 
-    if (!name || !email || !phone || !password || !confirmPassword) {
+    // Basic validation
+    if (!name || !email || !password) {
       return error(
         res,
-        'Name, email, phone, password and confirm password are required',
-        'MISSING_FIELDS',
+        'Name, email and password are required',
+        'VALIDATION_ERROR',
         400
       );
     }
 
-    if (password !== confirmPassword) {
+    if (confirmPassword !== undefined && password !== confirmPassword) {
       return error(
         res,
         'Passwords do not match',
@@ -412,55 +65,44 @@ const signup = async (req, res, next) => {
       );
     }
 
-<<<<<<< HEAD
-    if (password.length < 6) {
-      return error(
-        res,
-        'Password must be at least 6 characters',
-=======
     if (password.length < 8) {
       return error(
         res,
-        'Password must be at least 8 characters',
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
-        'PASSWORD_TOO_SHORT',
+        'Password must be at least 8 characters long',
+        'WEAK_PASSWORD',
         400
       );
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
-    const cleanName = name.trim();
-    const cleanPhone = phone.trim();
+    // Check if email already exists
+    const existingEmployee = await Employee.findOne({
+      email: email.toLowerCase().trim(),
+      isDeleted: false
+    });
 
-    if (cleanName.length < 2) {
-      return error(res, 'Name must be at least 2 characters', 'INVALID_NAME', 400);
-    }
-
-    if (!/^\d{10,15}$/.test(cleanPhone)) {
-      return error(res, 'Phone must contain 10 to 15 digits', 'INVALID_PHONE', 400);
-    }
-
-<<<<<<< HEAD
-=======
-    // Only the first account can be created publicly.
-    const employeeCount = await Employee.countDocuments({ isDeleted: false });
-    if (employeeCount > 0) {
+    if (existingEmployee) {
       return error(
         res,
-        'Initial signup is already completed. Please sign in.',
-        'SETUP_ALREADY_COMPLETED',
-        403
+        'An account with this email already exists',
+        'EMAIL_ALREADY_EXISTS',
+        409
       );
     }
 
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
-    const existingEmail = await Employee.findOne({ email: normalizedEmail });
-    if (existingEmail) {
-      return error(res, 'An account with this email already exists', 'EMAIL_EXISTS', 409);
-    }
+    /*
+     * First account:
+     * SUPER_ADMIN
+     *
+     * Later public signup:
+     * TELECALLER by default
+     *
+     * Admin creation:
+     * Requires ADMIN_REGISTRATION_KEY
+     */
+    const employeeCount = await Employee.countDocuments({
+      isDeleted: false
+    });
 
-<<<<<<< HEAD
-    const employeeCount = await Employee.countDocuments({ isDeleted: false });
     let assignedRole = 'TELECALLER';
     let assignedDept = 'Inside Sales';
     let newEmployeeId = `EMP${String(employeeCount + 1).padStart(3, '0')}`;
@@ -470,75 +112,70 @@ const signup = async (req, res, next) => {
       assignedDept = 'Executive Administration';
       newEmployeeId = 'ADMIN001';
     } else if (requestedRole === 'ADMIN') {
-      const validKey = process.env.ADMIN_REGISTRATION_KEY || 'ADMIN2024';
+      const validKey =
+        process.env.ADMIN_REGISTRATION_KEY || 'ADMIN2024';
+
       if (!adminKey || adminKey.trim() !== validKey) {
         return error(
           res,
-          'Invalid Admin Passkey. Please provide the authorized admin key to register as an Admin.',
+          'Invalid admin registration key',
           'INVALID_ADMIN_KEY',
           403
         );
       }
+
       assignedRole = 'ADMIN';
       assignedDept = 'Operations & Administration';
       newEmployeeId = `ADM${String(employeeCount + 1).padStart(3, '0')}`;
-    } else if (['TELECALLER', 'BDE', 'EMPLOYEE'].includes(requestedRole)) {
+    } else if (
+      ['TELECALLER', 'BDE', 'EMPLOYEE'].includes(requestedRole)
+    ) {
       assignedRole = requestedRole;
-      assignedDept = requestedRole === 'BDE' ? 'Field Sales' : 'Inside Sales';
+      assignedDept =
+        requestedRole === 'BDE'
+          ? 'Field Sales'
+          : 'Inside Sales';
     }
 
+    // Hash password
     const passwordHash = await Employee.hashPassword(password);
 
+    // Create employee
     const employee = await Employee.create({
       employeeId: newEmployeeId,
-=======
-    const passwordHash = await Employee.hashPassword(password);
-
-    const employee = await Employee.create({
-      employeeId: 'ADMIN001',
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
-      name: cleanName,
-      email: normalizedEmail,
-      phone: cleanPhone,
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      phone: phone || '',
       passwordHash,
-<<<<<<< HEAD
       role: assignedRole,
       department: assignedDept,
-=======
-      role: 'SUPER_ADMIN',
-      department: 'Administration',
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
       status: EMPLOYEE_STATUS.ACTIVE,
       isDeleted: false
     });
 
-    await logAudit({
-      actor: employee,
-<<<<<<< HEAD
-      action: employeeCount === 0 ? 'INITIAL_SIGNUP' : 'USER_SIGNUP',
-=======
-      action: 'INITIAL_SIGNUP',
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
-      entity: 'EMPLOYEE',
-      entityId: employee._id,
-      ipAddress: req.ip || req.headers['x-forwarded-for'] || '',
-      userAgent: req.headers['user-agent'] || ''
-    });
+    // Audit log
+    try {
+      await logAudit({
+        employeeId: employee._id,
+        action:
+          employeeCount === 0
+            ? 'INITIAL_SIGNUP'
+            : 'USER_SIGNUP',
+        details: {
+          email: employee.email,
+          role: employee.role,
+          employeeId: employee.employeeId
+        }
+      });
+    } catch (auditError) {
+      console.error(
+        '[Audit] Signup audit failed:',
+        auditError.message
+      );
+    }
 
-<<<<<<< HEAD
-    const token = jwt.sign(
-      {
-        id: employee._id.toString(),
-        employeeId: employee.employeeId,
-        email: employee.email,
-        role: employee.role,
-        name: employee.name
-      },
-      JWT_SECRET,
-      {
-        expiresIn: JWT_EXPIRES_IN
-      }
-    );
+    // Generate token
+    const token = generateToken(employee);
 
     return success(
       res,
@@ -546,17 +183,19 @@ const signup = async (req, res, next) => {
         token,
         user: employee.toSafeObject()
       },
-      `${assignedRole === 'ADMIN' ? 'Admin' : 'User'} account created successfully. Welcome to Yellow Pages CRM!`,
-=======
-    return success(
-      res,
-      employee.toSafeObject(),
-      'Super Admin account created successfully. Please sign in.',
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
+      `${
+        assignedRole === 'ADMIN'
+          ? 'Admin'
+          : assignedRole === 'SUPER_ADMIN'
+            ? 'Super Admin'
+            : 'User'
+      } account created successfully. Welcome to Yellow Pages CRM!`,
       201
     );
   } catch (err) {
-    if (err?.code === 11000) {
+    console.error('[Auth] Signup error:', err);
+
+    if (err.code === 11000) {
       return error(
         res,
         'An account with this email or employee ID already exists',
@@ -564,16 +203,345 @@ const signup = async (req, res, next) => {
         409
       );
     }
-    next(err);
+
+    return error(
+      res,
+      'Failed to create account',
+      'SIGNUP_ERROR',
+      500,
+      err.message
+    );
   }
 };
 
+/**
+ * Login
+ */
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return error(
+        res,
+        'Email and password are required',
+        'VALIDATION_ERROR',
+        400
+      );
+    }
+
+    const employee = await Employee.findOne({
+      email: email.toLowerCase().trim(),
+      isDeleted: false
+    }).select('+passwordHash');
+
+    if (!employee) {
+      return error(
+        res,
+        'Invalid email or password',
+        'INVALID_CREDENTIALS',
+        401
+      );
+    }
+
+    if (
+      employee.status &&
+      employee.status !== EMPLOYEE_STATUS.ACTIVE
+    ) {
+      return error(
+        res,
+        'Your account is not active. Please contact the administrator.',
+        'ACCOUNT_INACTIVE',
+        403
+      );
+    }
+
+    const isPasswordValid = await employee.comparePassword(password);
+
+    if (!isPasswordValid) {
+      return error(
+        res,
+        'Invalid email or password',
+        'INVALID_CREDENTIALS',
+        401
+      );
+    }
+
+    const token = generateToken(employee);
+
+    try {
+      await logAudit({
+        employeeId: employee._id,
+        action: 'LOGIN',
+        details: {
+          email: employee.email,
+          role: employee.role
+        }
+      });
+    } catch (auditError) {
+      console.error(
+        '[Audit] Login audit failed:',
+        auditError.message
+      );
+    }
+
+    return success(
+      res,
+      {
+        token,
+        user: employee.toSafeObject()
+      },
+      'Login successful'
+    );
+  } catch (err) {
+    console.error('[Auth] Login error:', err);
+
+    return error(
+      res,
+      'Failed to login',
+      'LOGIN_ERROR',
+      500,
+      err.message
+    );
+  }
+};
+
+/**
+ * Get current logged-in user
+ */
+const getMe = async (req, res) => {
+  try {
+    const employee = await Employee.findOne({
+      _id: req.user.id,
+      isDeleted: false
+    });
+
+    if (!employee) {
+      return error(
+        res,
+        'User account not found',
+        'USER_NOT_FOUND',
+        404
+      );
+    }
+
+    if (
+      employee.status &&
+      employee.status !== EMPLOYEE_STATUS.ACTIVE
+    ) {
+      return error(
+        res,
+        'Your account is not active',
+        'ACCOUNT_INACTIVE',
+        403
+      );
+    }
+
+    return success(
+      res,
+      employee.toSafeObject(),
+      'User details fetched successfully'
+    );
+  } catch (err) {
+    console.error('[Auth] Get me error:', err);
+
+    return error(
+      res,
+      'Failed to fetch user details',
+      'GET_ME_ERROR',
+      500,
+      err.message
+    );
+  }
+};
+
+/**
+ * Logout
+ */
+const logout = async (req, res) => {
+  try {
+    if (req.user?.id) {
+      try {
+        await logAudit({
+          employeeId: req.user.id,
+          action: 'LOGOUT',
+          details: {
+            email: req.user.email,
+            role: req.user.role
+          }
+        });
+      } catch (auditError) {
+        console.error(
+          '[Audit] Logout audit failed:',
+          auditError.message
+        );
+      }
+    }
+
+    return success(
+      res,
+      null,
+      'Logout successful'
+    );
+  } catch (err) {
+    console.error('[Auth] Logout error:', err);
+
+    return error(
+      res,
+      'Failed to logout',
+      'LOGOUT_ERROR',
+      500,
+      err.message
+    );
+  }
+};
+
+/**
+ * Change password
+ */
+const changePassword = async (req, res) => {
+  try {
+    const {
+      currentPassword,
+      newPassword,
+      confirmPassword
+    } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return error(
+        res,
+        'Current password and new password are required',
+        'VALIDATION_ERROR',
+        400
+      );
+    }
+
+    if (
+      confirmPassword !== undefined &&
+      newPassword !== confirmPassword
+    ) {
+      return error(
+        res,
+        'New passwords do not match',
+        'PASSWORD_MISMATCH',
+        400
+      );
+    }
+
+    if (newPassword.length < 8) {
+      return error(
+        res,
+        'New password must be at least 8 characters long',
+        'WEAK_PASSWORD',
+        400
+      );
+    }
+
+    const employee = await Employee.findOne({
+      _id: req.user.id,
+      isDeleted: false
+    }).select('+passwordHash');
+
+    if (!employee) {
+      return error(
+        res,
+        'User account not found',
+        'USER_NOT_FOUND',
+        404
+      );
+    }
+
+    const isCurrentPasswordValid =
+      await employee.comparePassword(currentPassword);
+
+    if (!isCurrentPasswordValid) {
+      return error(
+        res,
+        'Current password is incorrect',
+        'INVALID_CURRENT_PASSWORD',
+        401
+      );
+    }
+
+    employee.passwordHash =
+      await Employee.hashPassword(newPassword);
+
+    await employee.save();
+
+    try {
+      await logAudit({
+        employeeId: employee._id,
+        action: 'PASSWORD_CHANGE',
+        details: {
+          email: employee.email
+        }
+      });
+    } catch (auditError) {
+      console.error(
+        '[Audit] Password change audit failed:',
+        auditError.message
+      );
+    }
+
+    return success(
+      res,
+      null,
+      'Password changed successfully'
+    );
+  } catch (err) {
+    console.error(
+      '[Auth] Change password error:',
+      err
+    );
+
+    return error(
+      res,
+      'Failed to change password',
+      'CHANGE_PASSWORD_ERROR',
+      500,
+      err.message
+    );
+  }
+};
+
+/**
+ * Check whether initial setup is required
+ */
+const getSetupStatus = async (req, res) => {
+  try {
+    const employeeCount = await Employee.countDocuments({
+      isDeleted: false
+    });
+
+    return success(
+      res,
+      {
+        setupRequired: employeeCount === 0,
+        employeeCount
+      },
+      'Setup status fetched successfully'
+    );
+  } catch (err) {
+    console.error(
+      '[Auth] Setup status error:',
+      err
+    );
+
+    return error(
+      res,
+      'Failed to fetch setup status',
+      'SETUP_STATUS_ERROR',
+      500,
+      err.message
+    );
+  }
+};
 
 module.exports = {
-  login,
-  getSetupStatus,
   signup,
+  login,
   getMe,
   logout,
-  changePassword
+  changePassword,
+  getSetupStatus
 };

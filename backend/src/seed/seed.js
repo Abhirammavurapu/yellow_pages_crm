@@ -13,9 +13,10 @@ const Activity = require('../models/Activity');
 const { ROLES, EMPLOYEE_STATUS } = require('../config/constants');
 const { normalizePhoneNumber } = require('../utils/phoneNormalizer');
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/yellow_pages_crm';
+const MONGODB_URI =
+  process.env.MONGODB_URI ||
+  'mongodb://127.0.0.1:27017/yellow_pages_crm';
 
-<<<<<<< HEAD
 async function seedDatabase(isAlreadyConnected = false) {
   try {
     if (!isAlreadyConnected && mongoose.connection.readyState === 0) {
@@ -23,13 +24,6 @@ async function seedDatabase(isAlreadyConnected = false) {
       await mongoose.connect(MONGODB_URI);
       console.log('[Seed] Connected to database.');
     }
-=======
-async function seedDatabase() {
-  try {
-    console.log('[Seed] Connecting to MongoDB:', MONGODB_URI);
-    await mongoose.connect(MONGODB_URI);
-    console.log('[Seed] Connected to database.');
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
 
     // Clear existing data
     console.log('[Seed] Clearing existing collections...');
@@ -223,7 +217,12 @@ async function seedDatabase() {
       name: 'Telecalling Alpha Team',
       department: 'Inside Sales',
       teamLeadId: tl1._id,
-      members: [telecaller1._id, telecaller2._id, emp1._id, emp2._id],
+      members: [
+        telecaller1._id,
+        telecaller2._id,
+        emp1._id,
+        emp2._id
+      ],
       createdBy: admin._id
     });
 
@@ -236,8 +235,29 @@ async function seedDatabase() {
     });
 
     // Link team IDs
-    await Employee.updateMany({ _id: { $in: [telecaller1._id, telecaller2._id, emp1._id, emp2._id, tl1._id] } }, { $set: { teamId: team1._id } });
-    await Employee.updateMany({ _id: { $in: [bde1._id, bde2._id, tl2._id] } }, { $set: { teamId: team2._id } });
+    await Employee.updateMany(
+      {
+        _id: {
+          $in: [
+            telecaller1._id,
+            telecaller2._id,
+            emp1._id,
+            emp2._id,
+            tl1._id
+          ]
+        }
+      },
+      { $set: { teamId: team1._id } }
+    );
+
+    await Employee.updateMany(
+      {
+        _id: {
+          $in: [bde1._id, bde2._id, tl2._id]
+        }
+      },
+      { $set: { teamId: team2._id } }
+    );
 
     console.log('[Seed] Creating Leads across Indian States...');
 
@@ -399,7 +419,7 @@ async function seedDatabase() {
         source: 'WEBSITE',
         priority: 'MEDIUM',
         currentStatus: 'NEW',
-        assignedTo: null, // Unassigned lead for testing allocation
+        assignedTo: null,
         assignmentDate: null
       }
     ];
@@ -412,7 +432,7 @@ async function seedDatabase() {
     const lead1 = createdLeads[0];
     const lead2 = createdLeads[1];
 
-    const call1 = await CallHistory.create({
+    await CallHistory.create({
       leadId: lead1._id,
       employeeId: telecaller1._id,
       employeeNameSnapshot: telecaller1.name,
@@ -420,12 +440,13 @@ async function seedDatabase() {
       phoneNumber: lead1.phoneNumbers[0],
       callStatus: 'INTERESTED',
       duration: 245,
-      notes: 'Customer is very interested in Yellow Pages Premium Gold listing. Requested pricing package by tomorrow morning.',
+      notes:
+        'Customer is very interested in Yellow Pages Premium Gold listing. Requested pricing package by tomorrow morning.',
       followUpDate: new Date(Date.now() + 24 * 60 * 60 * 1000)
     });
 
     // Historical call made by the resigned employee to verify historical immutability
-    const historicalCall = await CallHistory.create({
+    await CallHistory.create({
       leadId: lead1._id,
       employeeId: empResigned._id,
       employeeNameSnapshot: empResigned.name,
@@ -433,7 +454,8 @@ async function seedDatabase() {
       phoneNumber: lead1.phoneNumbers[0],
       callStatus: 'CALL_ME_LATER',
       duration: 60,
-      notes: 'Initial cold call made back in August. Requested callback in September.',
+      notes:
+        'Initial cold call made back in August. Requested callback in September.',
       createdAt: new Date('2026-08-10')
     });
 
@@ -442,7 +464,7 @@ async function seedDatabase() {
     const today = new Date();
     today.setHours(14, 0, 0, 0);
 
-    const followUpToday = await FollowUp.create({
+    await FollowUp.create({
       leadId: lead1._id,
       assignedTo: telecaller1._id,
       createdBy: telecaller1._id,
@@ -455,7 +477,8 @@ async function seedDatabase() {
 
     const overdueDate = new Date();
     overdueDate.setDate(overdueDate.getDate() - 2);
-    const followUpOverdue = await FollowUp.create({
+
+    await FollowUp.create({
       leadId: lead2._id,
       assignedTo: telecaller1._id,
       createdBy: telecaller1._id,
@@ -468,7 +491,8 @@ async function seedDatabase() {
 
     // Create Sample Payment & Enrollment for Grand Chola
     const enrolledLead = createdLeads[3];
-    const payment = await Payment.create({
+
+    await Payment.create({
       leadId: enrolledLead._id,
       amount: 15000,
       paymentStatus: 'COMPLETED',
@@ -479,7 +503,7 @@ async function seedDatabase() {
       notes: 'Annual Platinum Listing Membership paid in full.'
     });
 
-    const enrollment = await Enrollment.create({
+    await Enrollment.create({
       leadId: enrolledLead._id,
       enrollmentStatus: 'ACTIVE',
       plan: 'PLATINUM',
@@ -487,11 +511,12 @@ async function seedDatabase() {
       enrolledBy: bde1._id
     });
 
-    const listing = await Listing.create({
+    await Listing.create({
       leadId: enrolledLead._id,
       businessName: enrolledLead.businessName,
       category: enrolledLead.category,
-      description: 'Authentic pure silk Kanchipuram and bridal sarees with doorstep delivery across India.',
+      description:
+        'Authentic pure silk Kanchipuram and bridal sarees with doorstep delivery across India.',
       phone: enrolledLead.phoneNumbers[0],
       email: enrolledLead.email,
       address: enrolledLead.address,
@@ -512,32 +537,45 @@ async function seedDatabase() {
       action: 'SYSTEM_INITIALIZED',
       entityType: 'SYSTEM',
       entityId: superAdmin._id,
-      newValue: { message: 'Yellow Pages CRM database seeded with initial records' }
+      newValue: {
+        message: 'Yellow Pages CRM database seeded with initial records'
+      }
     });
 
     console.log('\n=============================================');
-    console.log('✅ DATABASE SEEDING COMPLETED SUCCESSFULLY');
+    console.log('DATABASE SEEDING COMPLETED SUCCESSFULLY');
     console.log('=============================================');
     console.log('DEMO ACCOUNTS CREATED:');
-    console.log('1. Super Admin: admin@example.com         | Password: ChangeMe123!');
-    console.log('2. Admin:       admin.rajesh@example.com  | Password: AdminPass123!');
-    console.log('3. HR Admin:    hr.sunita@example.com     | Password: HrPass123!');
-    console.log('4. Team Lead:   tl.priya@example.com      | Password: LeaderPass123!');
-    console.log('5. Telecaller:  caller.anita@example.com  | Password: AgentPass123!');
-    console.log('6. BDE:         bde.suresh@example.com    | Password: AgentPass123!');
+    console.log(
+      '1. Super Admin: admin@example.com         | Password: ChangeMe123!'
+    );
+    console.log(
+      '2. Admin:       admin.rajesh@example.com  | Password: AdminPass123!'
+    );
+    console.log(
+      '3. HR Admin:    hr.sunita@example.com     | Password: HrPass123!'
+    );
+    console.log(
+      '4. Team Lead:   tl.priya@example.com      | Password: LeaderPass123!'
+    );
+    console.log(
+      '5. Telecaller:  caller.anita@example.com  | Password: AgentPass123!'
+    );
+    console.log(
+      '6. BDE:         bde.suresh@example.com    | Password: AgentPass123!'
+    );
     console.log('---------------------------------------------');
-    console.log('⚠️  IMPORTANT: Demo passwords must be changed in production.');
+    console.log(
+      'IMPORTANT: Demo passwords must be changed in production.'
+    );
     console.log('=============================================\n');
-
-<<<<<<< HEAD
-    if (require.main === module) {
-      process.exit(0);
-    }
   } catch (err) {
     console.error('[Seed] Error during database seeding:', err);
+
     if (require.main === module) {
       process.exit(1);
     }
+
     throw err;
   }
 }
@@ -547,13 +585,3 @@ if (require.main === module) {
 }
 
 module.exports = { seedDatabase };
-=======
-    process.exit(0);
-  } catch (err) {
-    console.error('[Seed] Error during database seeding:', err);
-    process.exit(1);
-  }
-}
-
-seedDatabase();
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef

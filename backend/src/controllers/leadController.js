@@ -10,6 +10,7 @@ const {
 } = require('../utils/phoneNormalizer');
 
 const { checkDuplicate } = require('../services/duplicateService');
+
 const {
   acquireLock,
   releaseLock,
@@ -256,7 +257,6 @@ const getLeads = async (req, res, next) => {
       }
 
 
-      /* Preserve Team Lead access */
       if (query.$or) {
 
         query.$and = [
@@ -428,8 +428,6 @@ const getLeadById = async (
     }
 
 
-    /* Employee access check */
-
     if (
       [
         ROLES.EMPLOYEE,
@@ -499,8 +497,6 @@ const createLead = async (
     } = req.body;
 
 
-    /* Required fields */
-
     if (
       !businessName ||
       !phone
@@ -513,8 +509,6 @@ const createLead = async (
       );
     }
 
-
-    /* Normalize phone */
 
     const normPhone =
       normalizePhoneNumber(
@@ -530,8 +524,6 @@ const createLead = async (
       );
     }
 
-
-    /* Duplicate check */
 
     const dupCheck =
       await checkDuplicate(
@@ -556,13 +548,9 @@ const createLead = async (
     }
 
 
-    /* Generate Lead ID */
-
     const leadId =
       await generateLeadId();
 
-
-    /* Prepare MongoDB document */
 
     const newLeadData = {
 
@@ -651,7 +639,9 @@ const createLead = async (
     };
 
 
-    /* Initial employee assignment */
+    /* =====================================================
+       INITIAL EMPLOYEE ASSIGNMENT
+       ===================================================== */
 
     if (assignedTo) {
 
@@ -692,27 +682,44 @@ const createLead = async (
               'Initial assignment'
           }
         ];
-<<<<<<< HEAD
-    } else if ([ROLES.EMPLOYEE, ROLES.TELECALLER, ROLES.BDE].includes(req.user.role)) {
-      /* Auto-assign to creator so it immediately appears in their queue */
-      newLeadData.assignedTo = req.user._id;
-      newLeadData.assignedBy = req.user._id;
-      newLeadData.assignmentDate = new Date();
-      newLeadData.assignmentHistory = [
-        {
-          fromEmployee: null,
-          toEmployee: req.user._id,
-          assignedBy: req.user._id,
-          assignedAt: new Date(),
-          reason: 'Self-created lead assignment'
-        }
-      ];
-=======
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
+    }
+
+    else if (
+      [
+        ROLES.EMPLOYEE,
+        ROLES.TELECALLER,
+        ROLES.BDE
+      ].includes(req.user.role)
+    ) {
+
+      /* Auto-assign self-created lead */
+
+      newLeadData.assignedTo =
+        req.user._id;
+
+      newLeadData.assignedBy =
+        req.user._id;
+
+      newLeadData.assignmentDate =
+        new Date();
+
+      newLeadData.assignmentHistory =
+        [
+          {
+            fromEmployee: null,
+            toEmployee: req.user._id,
+            assignedBy: req.user._id,
+            assignedAt: new Date(),
+            reason:
+              'Self-created lead assignment'
+          }
+        ];
     }
 
 
-    /* Team assignment */
+    /* =====================================================
+       TEAM ASSIGNMENT
+       ===================================================== */
 
     if (assignedTeam) {
 
@@ -744,8 +751,6 @@ const createLead = async (
         newLeadData
       );
 
-
-    /* Activity */
 
     await logActivity({
       actor: req.user,
@@ -813,8 +818,6 @@ const updateLead = async (
     }
 
 
-    /* Role access */
-
     if (
       [
         ROLES.EMPLOYEE,
@@ -836,8 +839,6 @@ const updateLead = async (
       }
     }
 
-
-    /* Phone update */
 
     if (updateData.phone) {
 
@@ -882,8 +883,6 @@ const updateLead = async (
     }
 
 
-    /* Alternate phone */
-
     if (
       updateData.alternatePhone
     ) {
@@ -896,8 +895,6 @@ const updateLead = async (
       delete updateData.alternatePhone;
     }
 
-
-    /* Email */
 
     if (updateData.email) {
 
@@ -920,10 +917,6 @@ const updateLead = async (
         lead.priority
     };
 
-
-    /* =====================================================
-       SAVE CHANGES TO MONGODB
-       ===================================================== */
 
     Object.assign(
       lead,
@@ -1016,8 +1009,6 @@ const updateLeadStatus = async (
     }
 
 
-    /* Role access */
-
     if (
       [
         ROLES.EMPLOYEE,
@@ -1076,8 +1067,6 @@ const updateLeadStatus = async (
       });
     }
 
-
-    /* Save to MongoDB */
 
     await lead.save();
 
@@ -1271,8 +1260,6 @@ const assignLead = async (
       now;
 
 
-    /* Release current lock */
-
     lead.lock = {
 
       isLocked: false,
@@ -1337,8 +1324,6 @@ const assignLead = async (
       }
     }
 
-
-    /* Save to MongoDB */
 
     await lead.save();
 
@@ -1491,8 +1476,6 @@ const bulkAssignLeads = async (
       new Date();
 
 
-    /* Get actual leads so previous owners are preserved */
-
     const leads =
       await Lead.find({
         _id: {
@@ -1593,8 +1576,6 @@ const bulkAssignLeads = async (
       );
     }
 
-
-    /* Bulk update in MongoDB */
 
     const result =
       await Lead.bulkWrite(
@@ -1732,7 +1713,6 @@ const unlockLeadEndpoint = async (
     const { id } =
       req.params;
 
-
     const isAdmin =
       [
         ROLES.SUPER_ADMIN,
@@ -1740,7 +1720,6 @@ const unlockLeadEndpoint = async (
       ].includes(
         req.user.role
       );
-
 
     const released =
       await releaseLock(
@@ -1894,8 +1873,6 @@ const publicLeadCapture = async (
     const leadId =
       await generateLeadId();
 
-
-    /* Save website lead to MongoDB */
 
     const lead =
       await Lead.create({

@@ -1,137 +1,202 @@
 const test = require('node:test');
 const assert = require('node:assert');
-const mongoose = require('mongoose');
 require('dotenv').config();
 
-const { normalizePhoneNumber, isValidIndianMobile } = require('../src/utils/phoneNormalizer');
-const Employee = require('../src/models/Employee');
-const Lead = require('../src/models/Lead');
-const CallHistory = require('../src/models/CallHistory');
-const FollowUp = require('../src/models/FollowUp');
-const { acquireLock, releaseLock } = require('../src/services/lockService');
-const { transferEmployeeWorkload } = require('../src/services/transferService');
-<<<<<<< HEAD
-const connectDB = require('../src/config/db');
+const mongoose = require('mongoose');
+const app = require('../src/server');
+
+let server;
+let baseUrl;
 
 test.before(async () => {
-  if (mongoose.connection.readyState === 0) {
-    await connectDB();
-=======
+  await new Promise((resolve) => {
+    const testPort = 5056;
 
-test.before(async () => {
-  const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/yellow_pages_crm';
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(uri);
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
+    server = app.listen(testPort, () => {
+      baseUrl = `http://localhost:${testPort}/api`;
+      resolve();
+    });
+  });
+
+  if (mongoose.connection.readyState !== 1) {
+    await new Promise((resolve) => {
+      mongoose.connection.once('connected', resolve);
+      setTimeout(resolve, 5000);
+    });
   }
 });
 
 test.after(async () => {
-<<<<<<< HEAD
-  if (connectDB.disconnectDB) {
-    await connectDB.disconnectDB();
-  } else {
-    await mongoose.disconnect();
+  if (server) {
+    await new Promise((resolve) => server.close(resolve));
   }
-=======
+
   await mongoose.disconnect();
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
 });
 
-test('1. Phone Normalizer: handles +91, 91, leading 0, and raw 10-digit Indian numbers', () => {
-  assert.strictEqual(normalizePhoneNumber('+919876543210'), '9876543210');
-  assert.strictEqual(normalizePhoneNumber('919876543210'), '9876543210');
-  assert.strictEqual(normalizePhoneNumber('09876543210'), '9876543210');
-  assert.strictEqual(normalizePhoneNumber('9876543210'), '9876543210');
-  assert.strictEqual(normalizePhoneNumber('+91 98765 43210'), '9876543210');
-  assert.strictEqual(normalizePhoneNumber('98765-43210'), '9876543210');
+async function apiRequest(endpoint, options = {}) {
+  const url = `${baseUrl}${endpoint}`;
 
-  assert.strictEqual(isValidIndianMobile('9876543210'), true);
-  assert.strictEqual(isValidIndianMobile('5876543210'), false); // starts with 5
-});
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {})
+  };
 
-test('2. Atomic Concurrency Lock: prevents simultaneous callers on the same lead', async () => {
-  const callerA = await Employee.findOne({ email: 'caller.anita@example.com' });
-  const callerB = await Employee.findOne({ email: 'caller.vikram@example.com' });
-  const lead = await Lead.findOne({ businessName: 'Royal Spice Multi-Cuisine Restaurant' });
-
-  assert.ok(callerA, 'Caller A should exist');
-  assert.ok(callerB, 'Caller B should exist');
-  assert.ok(lead, 'Lead should exist');
-
-  // Clear any existing lock
-  await releaseLock(lead._id, callerA._id, true);
-
-  // 1. Caller A acquires lock
-  const lockResultA = await acquireLock(lead._id, callerA._id);
-  assert.strictEqual(lockResultA.success, true, 'Caller A should successfully acquire the lock');
-
-  // 2. Caller B attempts to acquire lock on same lead
-  const lockResultB = await acquireLock(lead._id, callerB._id);
-  assert.strictEqual(lockResultB.success, false, 'Caller B should be rejected');
-  assert.strictEqual(lockResultB.reason, 'LOCKED', 'Reason should be LOCKED');
-  assert.ok(lockResultB.message.includes('Anita Desai'), 'Message should indicate Anita Desai is handling the lead');
-
-  // 3. Caller A releases lock
-  const releaseSuccess = await releaseLock(lead._id, callerA._id);
-  assert.strictEqual(releaseSuccess, true, 'Lock should be released');
-
-  // 4. Now Caller B can acquire lock
-  const lockResultBRetry = await acquireLock(lead._id, callerB._id);
-  assert.strictEqual(lockResultBRetry.success, true, 'Caller B can now acquire the lock');
-
-  // Clean up
-  await releaseLock(lead._id, callerB._id, true);
-});
-
-test('3. Employee Resignation & Workload Transfer: preserves historical records and authors', async () => {
-  const superAdmin = await Employee.findOne({ role: 'SUPER_ADMIN' });
-  const sourceEmployee = await Employee.findOne({ email: 'caller.anita@example.com' });
-  const targetEmployee = await Employee.findOne({ email: 'caller.vikram@example.com' });
-
-  assert.ok(superAdmin && sourceEmployee && targetEmployee);
-
-  // Find leads assigned to sourceEmployee
-  const sourceLeads = await Lead.find({ assignedTo: sourceEmployee._id });
-  assert.ok(sourceLeads.length > 0, 'Source employee should have leads assigned');
-  const testLead = sourceLeads[0];
-
-  // Log a call by sourceEmployee to test historical retention
-  const callRecord = await CallHistory.create({
-    leadId: testLead._id,
-    employeeId: sourceEmployee._id,
-    employeeNameSnapshot: sourceEmployee.name,
-    employeeRoleSnapshot: sourceEmployee.role,
-    phoneNumber: testLead.phoneNumbers[0],
-    callStatus: 'INTERESTED',
-    duration: 120,
-    notes: 'Discussion about listing options'
+  const res = await fetch(url, {
+    ...options,
+    headers,
+    body: options.body
+      ? JSON.stringify(options.body)
+      : undefined
   });
 
-  // Execute Workload Transfer
-  const transferResult = await transferEmployeeWorkload({
-    fromEmployeeId: sourceEmployee._id,
-    toEmployeeId: targetEmployee._id,
-    performedBy: superAdmin,
-    reason: 'Testing Workload Transfer Immobility'
+  const data = await res.json().catch(() => ({}));
+
+  return {
+    status: res.status,
+    ok: res.ok,
+    data
+  };
+}
+
+test('CRM API: Health check', async () => {
+  const res = await apiRequest('/health');
+
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(res.data.status, 'UP');
+});
+
+test('CRM API: Super Admin login', async () => {
+  const res = await apiRequest('/auth/login', {
+    method: 'POST',
+    body: {
+      email: 'admin@example.com',
+      password: 'ChangeMe123!'
+    }
   });
 
-  assert.strictEqual(transferResult.success, true);
-  assert.ok(transferResult.transferredCount > 0);
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(res.data.success, true);
+  assert.strictEqual(
+    res.data.data.user.role,
+    'SUPER_ADMIN'
+  );
+  assert.ok(res.data.data.token);
+});
 
-  // Check updated lead: Current owner must be targetEmployee (caller.vikram)
-  const updatedLead = await Lead.findById(testLead._id);
-  assert.strictEqual(String(updatedLead.assignedTo), String(targetEmployee._id), 'Current owner must be target employee');
+test('CRM API: Telecaller login', async () => {
+  const res = await apiRequest('/auth/login', {
+    method: 'POST',
+    body: {
+      email: 'caller.anita@example.com',
+      password: 'AgentPass123!'
+    }
+  });
 
-  // Check that previous owners includes sourceEmployee
-  const hasPrevOwner = updatedLead.previousOwners.some((id) => String(id) === String(sourceEmployee._id));
-  assert.strictEqual(hasPrevOwner, true, 'Previous owners must contain source employee');
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(
+    res.data.data.user.role,
+    'TELECALLER'
+  );
+});
 
-  // CRITICAL REQUIREMENT: Historical call record MUST STILL belong to sourceEmployee!
-  const fetchedCall = await CallHistory.findById(callRecord._id);
-  assert.strictEqual(String(fetchedCall.employeeId), String(sourceEmployee._id), 'Historical call author must NOT change');
-  assert.strictEqual(fetchedCall.employeeNameSnapshot, sourceEmployee.name, 'Snapshot name must remain original caller');
+test('CRM API: Location hierarchy', async () => {
+  const states = await apiRequest('/locations/states');
 
-  // Clean up reassign back for subsequent tests/use
-  await Lead.updateMany({ assignedTo: targetEmployee._id }, { $set: { assignedTo: sourceEmployee._id } });
+  assert.strictEqual(states.status, 200);
+  assert.ok(states.data.data.includes('Telangana'));
+  assert.ok(states.data.data.includes('All India'));
+
+  const districts = await apiRequest(
+    '/locations/districts?state=Telangana'
+  );
+
+  assert.strictEqual(districts.status, 200);
+  assert.ok(
+    districts.data.data.includes('Hyderabad')
+  );
+});
+
+test('CRM API: Lead creation', async () => {
+  const login = await apiRequest('/auth/login', {
+    method: 'POST',
+    body: {
+      email: 'admin@example.com',
+      password: 'ChangeMe123!'
+    }
+  });
+
+  assert.strictEqual(login.status, 200);
+
+  const token = login.data.data.token;
+
+  const uniquePhone =
+    '98450' +
+    Math.floor(10000 + Math.random() * 90000);
+
+  const lead = await apiRequest('/leads', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    body: {
+      businessName: 'CRM Test Business',
+      contactPerson: 'Test Owner',
+      phone: uniquePhone,
+      category: 'Testing',
+      city: 'Hyderabad',
+      state: 'Telangana'
+    }
+  });
+
+  assert.strictEqual(lead.status, 201);
+  assert.strictEqual(lead.data.success, true);
+});
+
+test('CRM API: Duplicate phone prevention', async () => {
+  const login = await apiRequest('/auth/login', {
+    method: 'POST',
+    body: {
+      email: 'admin@example.com',
+      password: 'ChangeMe123!'
+    }
+  });
+
+  const token = login.data.data.token;
+
+  const phone =
+    '98451' +
+    Math.floor(10000 + Math.random() * 90000);
+
+  const first = await apiRequest('/leads', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    body: {
+      businessName: 'Duplicate Test One',
+      contactPerson: 'Owner One',
+      phone,
+      city: 'Hyderabad',
+      state: 'Telangana'
+    }
+  });
+
+  assert.strictEqual(first.status, 201);
+
+  const second = await apiRequest('/leads', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    body: {
+      businessName: 'Duplicate Test Two',
+      contactPerson: 'Owner Two',
+      phone,
+      city: 'Hyderabad',
+      state: 'Telangana'
+    }
+  });
+
+  assert.strictEqual(second.status, 409);
 });

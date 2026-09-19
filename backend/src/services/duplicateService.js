@@ -15,15 +15,14 @@ async function checkDuplicate(
   const normalizedPhone =
     normalizePhoneNumber(phoneNumber);
 
-<<<<<<< HEAD
-  const trimmedEmail = email ? String(email).trim().toLowerCase() : null;
-  const normalizedEmail = trimmedEmail && trimmedEmail.length > 0 ? trimmedEmail : null;
-=======
+  const trimmedEmail = email
+    ? String(email).trim().toLowerCase()
+    : null;
+
   const normalizedEmail =
-    email
-      ? String(email).trim().toLowerCase()
+    trimmedEmail && trimmedEmail.length > 0
+      ? trimmedEmail
       : null;
->>>>>>> 04adb2bc717f7dc5bf8e0f4c700c4184cf76c6ef
 
   if (!normalizedPhone && !normalizedEmail) {
     return {
