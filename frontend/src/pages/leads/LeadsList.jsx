@@ -339,13 +339,14 @@ export default function LeadsList() {
 
   return (
     <div className="space-y-6">
+      <div className="rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 p-5 sm:p-6 text-white shadow-lg">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-xl font-bold tracking-tight text-white">
             Yellow Pages Business Leads
           </h1>
 
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-blue-100 mt-0.5">
             {total.toLocaleString()} total verified leads in All-India database
           </p>
         </div>
@@ -353,7 +354,7 @@ export default function LeadsList() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={handleExportCSV}
-            className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition shadow-xs flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-semibold rounded-xl transition shadow-xs flex items-center gap-1.5"
           >
             <Download className="w-3.5 h-3.5 text-slate-500" />
             <span>Export CSV</span>
@@ -361,15 +362,16 @@ export default function LeadsList() {
 
           <button
             onClick={() => setAddLeadModalOpen(true)}
-            className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5"
+            className="px-4 py-2 bg-white hover:bg-blue-50 text-indigo-700 font-semibold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             <span>New Lead</span>
           </button>
         </div>
       </div>
+      </div>
 
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+      <div className="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm space-y-3">
         <div className="flex flex-col lg:flex-row gap-3 items-center justify-between">
           <form
             onSubmit={handleSearchSubmit}
@@ -551,7 +553,7 @@ export default function LeadsList() {
       </div>
 
       {selectedIds.length > 0 && (
-        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs animate-in fade-in">
+        <div className="p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs animate-in fade-in">
           <span className="font-semibold text-amber-900">
             {selectedIds.length} lead
             {selectedIds.length > 1 ? 's' : ''} selected
@@ -577,11 +579,11 @@ export default function LeadsList() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-3xl border border-indigo-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold">
+              <tr className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-blue-100 text-slate-600 font-semibold">
                 <th className="py-3 px-4 w-10">
                   <button
                     onClick={handleSelectAll}
@@ -627,8 +629,8 @@ export default function LeadsList() {
                   return (
                     <tr
                       key={lead._id}
-                      className={`hover:bg-slate-50/70 transition-colors ${
-                        isSelected ? 'bg-amber-50/40' : ''
+                      className={`hover:bg-blue-50/50 transition-colors ${
+                        isSelected ? 'bg-amber-50/60' : ''
                       }`}
                     >
                       <td className="py-3 px-4">
