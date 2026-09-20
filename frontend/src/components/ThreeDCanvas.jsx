@@ -18,6 +18,19 @@ export default function ThreeDCanvas({ className = '' }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
+    // IMPORTANT: detect phones/tablets before starting the heavy desktop
+    // Canvas animation. Some mobile browsers use a wider layout viewport,
+    // so checking width alone is not reliable.
+    const isMobileDevice =
+      typeof window !== 'undefined' &&
+      (
+        window.matchMedia('(max-width: 768px)').matches ||
+        window.matchMedia('(pointer: coarse)').matches ||
+        (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
+      );
+
+    if (isMobileDevice) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -26,126 +39,8 @@ export default function ThreeDCanvas({ className = '' }) {
 
     let animationFrameId;
 
-    const isMobile = window.matchMedia(
-      '(max-width: 768px)'
-    ).matches;
-
-    /* =========================================================
-       MOBILE LIGHTWEIGHT ANIMATION
-       ========================================================= */
-
-    if (isMobile) {
-      let width = (canvas.width = window.innerWidth);
-      let height = (canvas.height = window.innerHeight);
-
-      const mobileParticles = Array.from(
-        { length: 20 },
-        () => ({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          radius: Math.random() * 1.8 + 0.8,
-          speedX: (Math.random() - 0.5) * 0.3,
-          speedY: (Math.random() - 0.5) * 0.3,
-          alpha: Math.random() * 0.4 + 0.2,
-          pulse: Math.random() * Math.PI * 2,
-          pulseSpeed: Math.random() * 0.02 + 0.01,
-        })
-      );
-
-      let lastFrameTime = 0;
-
-      const handleMobileResize = () => {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-      };
-
-      const mobileRender = (time) => {
-        /*
-         * Limit animation to approximately 30 FPS.
-         * This greatly reduces mobile CPU/GPU usage.
-         */
-        if (time - lastFrameTime < 33) {
-          animationFrameId =
-            requestAnimationFrame(mobileRender);
-          return;
-        }
-
-        lastFrameTime = time;
-
-        ctx.clearRect(0, 0, width, height);
-
-        mobileParticles.forEach((particle) => {
-          particle.x += particle.speedX;
-          particle.y += particle.speedY;
-
-          particle.pulse += particle.pulseSpeed;
-
-          /*
-           * Keep particles inside the screen by wrapping
-           * them around the edges.
-           */
-          if (particle.x < -5) {
-            particle.x = width + 5;
-          }
-
-          if (particle.x > width + 5) {
-            particle.x = -5;
-          }
-
-          if (particle.y < -5) {
-            particle.y = height + 5;
-          }
-
-          if (particle.y > height + 5) {
-            particle.y = -5;
-          }
-
-          const pulseAlpha =
-            particle.alpha +
-            Math.sin(particle.pulse) * 0.1;
-
-          ctx.beginPath();
-
-          ctx.arc(
-            particle.x,
-            particle.y,
-            particle.radius,
-            0,
-            Math.PI * 2
-          );
-
-          ctx.fillStyle = `rgba(
-            245,
-            158,
-            11,
-            ${Math.max(0.1, pulseAlpha)}
-          )`;
-
-          ctx.fill();
-        });
-
-        animationFrameId =
-          requestAnimationFrame(mobileRender);
-      };
-
-      window.addEventListener(
-        'resize',
-        handleMobileResize
-      );
-
-      animationFrameId =
-        requestAnimationFrame(mobileRender);
-
-      return () => {
-        cancelAnimationFrame(animationFrameId);
-
-        window.removeEventListener(
-          'resize',
-          handleMobileResize
-        );
-      };
-    }
-
+    // Mobile intentionally uses no Canvas/requestAnimationFrame work.
+    // A lightweight CSS animation is rendered by the component below.
     /* =========================================================
        DESKTOP 3D ANIMATION
        ========================================================= */
@@ -897,6 +792,69 @@ export default function ThreeDCanvas({ className = '' }) {
       );
     };
   }, []);
+
+  const isMobile =
+    typeof window !== 'undefined' &&
+    (
+      window.matchMedia('(max-width: 768px)').matches ||
+      window.matchMedia('(pointer: coarse)').matches ||
+      (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
+    );
+
+  if (isMobile) {
+    const mobileDots = [
+      { left: '8%', top: '18%', delay: '0s', size: 4 },
+      { left: '22%', top: '72%', delay: '1.2s', size: 3 },
+      { left: '38%', top: '28%', delay: '2.1s', size: 3 },
+      { left: '55%', top: '82%', delay: '0.7s', size: 4 },
+      { left: '72%', top: '20%', delay: '1.7s', size: 3 },
+      { left: '88%', top: '58%', delay: '2.6s', size: 4 },
+      { left: '15%', top: '45%', delay: '3.1s', size: 3 },
+      { left: '64%', top: '48%', delay: '1.0s', size: 3 }
+    ];
+
+    return (
+      <div
+        className={`fixed inset-0 pointer-events-none z-0 overflow-hidden ${className}`}
+        aria-hidden="true"
+      >
+        <style>{`
+          @keyframes ypMobileFloat {
+            0%, 100% {
+              transform: translate3d(0, 0, 0);
+              opacity: 0.25;
+            }
+            50% {
+              transform: translate3d(0, -14px, 0);
+              opacity: 0.7;
+            }
+          }
+
+          .yp-mobile-dot {
+            position: absolute;
+            border-radius: 9999px;
+            background: rgba(245, 158, 11, 0.8);
+            animation: ypMobileFloat 4s ease-in-out infinite;
+            will-change: transform, opacity;
+          }
+        `}</style>
+
+        {mobileDots.map((dot, index) => (
+          <span
+            key={index}
+            className="yp-mobile-dot"
+            style={{
+              left: dot.left,
+              top: dot.top,
+              width: `${dot.size}px`,
+              height: `${dot.size}px`,
+              animationDelay: dot.delay
+            }}
+          />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <canvas
